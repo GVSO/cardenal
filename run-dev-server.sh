@@ -1,4 +1,11 @@
 #!/bin/bash
+trap 'killall' INT
+
+killall() {
+  trap '' INT TERM  # ignore INT and TERM while shutting down
+  kill -TERM 0
+  wait
+}
 
 # Run Go server application.
 go run settings.go handlers.go linkedin.go main.go | sed "s/^/[Go Server] /" &
@@ -7,4 +14,4 @@ go run settings.go handlers.go linkedin.go main.go | sed "s/^/[Go Server] /" &
 cd client
 npm start | sed "s/^/[React] /"  &
 
-wait
+cat # wait forever
