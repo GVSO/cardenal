@@ -1,0 +1,34 @@
+hash: f7cf776e08e755cad8f52711098d98bc6476f3d659c428d077f353d4b272240f
+updated: 2018-06-17T00:33:04.841348823Z
+imports:
+- name: github.com/golang/protobuf
+  version: 9f81198da99b79e14d70ca2c3cc1bbe44c6e69b6
+  subpackages:
+  - proto
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/mux
+  version: e3702bed27f0d39777b0b37b664b6280e8ef8fbf
+- name: github.com/pilu/fresh
+  version: 9c0092493eff2825c3abf64e087b3383dec939c3
+- name: golang.org/x/net
+  version: db08ff08e8622530d9ed3a0e8ac279f6d4c02196
+  subpackages:
+  - context
+  - context/ctxhttp
+- name: golang.org/x/oauth2
+  version: 1e0a3fa8ba9a5c9eb35c271780101fdaf1b205d7
+  subpackages:
+  - internal
+  - linkedin
+- name: google.golang.org/appengine
+  version: b1f26356af11148e710935ed1ac8a7f5702c7612
+  subpackages:
+  - internal
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+testImports: []

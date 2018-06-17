@@ -31,5 +31,11 @@ module.exports = {
     new HtmlWebPackPlugin({
       template: './public/index.html'
     })
-  ]
+  ],
+  /*resolve: {
+    modules: [
+      path.resolve('./client'),
+      path.resolve('./node_modules')
+    ]
+  },*/
 };

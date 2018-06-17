@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -25,7 +24,7 @@ func main() {
 
 	router.HandleFunc("/{rest:.*}", clientHandler)
 
-	port := ":" + strconv.Itoa(Settings.Port)
+	port := ":" + Settings.Port
 
 	log.Print("Server application started at ", "http://localhost"+port)
 

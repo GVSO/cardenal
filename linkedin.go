@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,8 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
@@ -60,7 +59,7 @@ func init() {
 	conf = &oauth2.Config{
 		ClientID:     Settings.LinkedIn.ClientID,
 		ClientSecret: Settings.LinkedIn.ClientSecret,
-		RedirectURL:  Settings.LinkedIn.RedirectURLHost + "/api/services/login/callback",
+		RedirectURL:  Settings.LinkedIn.RedirectURLHost + Settings.Port + "/api/services/login/callback",
 		Scopes: []string{
 			"r_basicprofile",
 			"r_emailaddress",

@@ -1,0 +1,12 @@
+client/node_modules/
+
+# Possible executables
+cardenal
+main
+go
+
+# Folders created by building/dependency manager tools
+tmp/
+bin/
+vendor/
+src/

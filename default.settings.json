@@ -1,6 +1,0 @@
-{
-  "server": {
-    "development": true,
-    "port": 8000
-  }
-}

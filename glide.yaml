@@ -1,0 +1,8 @@
+package: .
+import:
+- package: github.com/gorilla/mux
+  version: ^1.6.2
+- package: golang.org/x/oauth2
+  subpackages:
+  - linkedin
+- package: github.com/pilu/fresh
