@@ -15,4 +15,4 @@ bin/
 
 # Folders created by glide
 vendor/
-src/
+src
