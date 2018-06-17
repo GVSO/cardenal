@@ -7,6 +7,4 @@ go
 
 # Folders created by building/dependency manager tools
 tmp/
-bin/
 vendor/
-src/

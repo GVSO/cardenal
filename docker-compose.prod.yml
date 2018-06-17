@@ -1,0 +1,14 @@
+version: '3.1'
+
+services:
+  server:
+    container_name: cardenal-server-prod
+    image: cardenal-server-prod
+    working_dir: /go/src/github.com/gvso/cardenal
+    build:
+      context: .
+      dockerfile: .docker/app.prod.dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .docker/env/prod.env

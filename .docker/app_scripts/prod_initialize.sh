@@ -6,8 +6,6 @@ npm install --production
 
 # Build Go Server
 cd ..
-glide install
-rm -r $GOPATH/src
-ln -s vendor $GOPATH/src
+dep ensure
 go build -o cardenal
 ./cardenal
