@@ -1,0 +1,15 @@
+
+/**
+ * This is an example of how to overwrite styles with Sass.
+ *
+ * @see https://material-ui.com/customization/overrides/#overriding-with-classes
+ */
+header {
+  &.navbar {
+    max-height: 50px;
+  }
+
+  .toolbar {
+    min-height: 50px;
+  }
+}
