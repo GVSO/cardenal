@@ -14,3 +14,6 @@ tmp/
 
 # Folders created by dep
 vendor/
+
+# Environment variables file
+.env

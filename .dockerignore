@@ -8,3 +8,6 @@ go
 # Folders created by building/dependency manager tools
 tmp/
 vendor/
+
+# Environment variables file
+.env

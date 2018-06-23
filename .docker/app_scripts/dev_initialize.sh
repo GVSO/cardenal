@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Run Go Server
 dep ensure

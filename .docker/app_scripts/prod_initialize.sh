@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Build client
 cd client
