@@ -12,10 +12,10 @@ const styles = {
     flexGrow: 1,
   },
   paper: {
-    height: 140
+    height: 100
   },
   avatar: {
-    margin: '1em 1em .5em 1em',
+    margin: '1em .8em .5em 1em',
   },
   bigAvatar: {
     width: 60,
@@ -27,7 +27,7 @@ const Result = (props) => {
   const { classes } = props;
 
   return (
-    <Paper className={classes.paper} elevation={1}>
+    <Paper className={classes.paper} elevation={2}>
       <Grid container>
         <Grid item sm={2} lg={1}>
           <Avatar

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 
@@ -6,19 +7,19 @@ import Result from './Result';
 
 
 const styles = {
-  resultWrapper: {
-    boxShadow: '10px 0 10px -4px rgba(0, 0, 0, 0.2), -10px 0 10px -4px rgba(0, 0, 0, 0.2)'
-  }
+  resultList: {
+    marginTop: '1em',
+  },
 }
 
 const ResultList = (props) => {
   const { classes } = props;
 
   return (
-    <Grid container justify="center">
+    <Grid className={classes.resultList} container justify="center">
       {[0, 1, 2].map(value => (
         <Grid item xs={12} md={8} key={value}>
-          <Grid container className={classes.resultWrapper}>
+          <Grid container>
             <Grid item xs={12}>
               <Result />
             </Grid>
@@ -28,5 +29,9 @@ const ResultList = (props) => {
     </Grid>
   );
 }
+
+ResultList.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(styles)(ResultList);
