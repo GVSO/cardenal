@@ -9,8 +9,9 @@ services:
       dockerfile: .docker/app.dev.dockerfile
     working_dir: /go/src/github.com/gvso/cardenal
     ports:
-      - "8000:8000"
-      - "8080:8080"
+      - "8000:8000" # Go port
+      - "1234:1234" # Parcel port
+      - "5678:5678" # Parcel hot reload socket port
     volumes:
       - .:/go/src/github.com/gvso/cardenal
     env_file:
