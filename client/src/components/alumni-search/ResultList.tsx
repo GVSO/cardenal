@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
+import { Grid } from '@material-ui/core';
 
 import Result from './Result';
 
@@ -12,7 +12,7 @@ const styles = {
   },
 }
 
-const ResultList = (props) => {
+const ResultList = (props: Props) => {
   const { classes } = props;
 
   return (
@@ -30,8 +30,10 @@ const ResultList = (props) => {
   );
 }
 
-ResultList.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
 export default withStyles(styles)(ResultList);
+
+interface Props {
+  classes: {
+    resultList: string
+  }
+}

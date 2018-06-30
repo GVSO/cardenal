@@ -1,11 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import Avatar from '@material-ui/core/Avatar';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
+import { Avatar, Grid, Paper, Typography } from '@material-ui/core';
 
 const styles = {
   root: {
@@ -23,7 +19,7 @@ const styles = {
   },
 };
 
-const Result = (props) => {
+const Result = (props: Props) => {
   const { classes } = props;
 
   return (
@@ -47,8 +43,12 @@ const Result = (props) => {
   );
 }
 
-Result.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
 export default withStyles(styles)(Result);
+
+interface Props {
+  classes: {
+    paper: string,
+    avatar: string,
+    bigAvatar: string
+  }
+}
