@@ -55,21 +55,11 @@ var fields = []string{"id", "first-name", "last-name", "headline", "industry",
 
 var conf *oauth2.Config
 
-func init() {
-	conf = &oauth2.Config{
-		ClientID:     Settings.LinkedIn.ClientID,
-		ClientSecret: Settings.LinkedIn.ClientSecret,
-		RedirectURL:  Settings.LinkedIn.RedirectURLHost + Settings.Port + "/api/services/login/callback",
-		Scopes: []string{
-			"r_basicprofile",
-			"r_emailaddress",
-		},
-		Endpoint: linkedin.Endpoint,
-	}
-}
-
 // Starts authorization request to LinkedIn.
 func linkedinLogin(w *http.ResponseWriter, r *http.Request) {
+	conf = getConfig()
+
+	fmt.Println(conf.RedirectURL)
 	url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 
 	http.Redirect(*w, r, url, 303)
@@ -77,13 +67,15 @@ func linkedinLogin(w *http.ResponseWriter, r *http.Request) {
 
 // Handles LinkedIn API callback.
 func linkedinCallback(w *http.ResponseWriter, r *http.Request) {
+	conf = getConfig()
+
 	ctx := context.Background()
 
 	code := r.URL.Query()["code"][0]
 
 	tok, err := conf.Exchange(ctx, code)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 
 		// @TODO: redirect to error page.
 		return
@@ -100,7 +92,7 @@ func linkedinCallback(w *http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 
-		// Prints in broser.
+		// Prints in browser.
 		if Settings.Development && exception.Response.Message != "" {
 			json.NewEncoder(*w).Encode(&exception)
 		}
@@ -151,4 +143,18 @@ func getData(client *http.Client, exception *LinkedInException) (interface{}, er
 	}
 
 	return data, nil
+}
+
+// Returns the OAuth2 client configuration.
+func getConfig() *oauth2.Config {
+	return &oauth2.Config{
+		ClientID:     Settings.LinkedIn.ClientID,
+		ClientSecret: Settings.LinkedIn.ClientSecret,
+		RedirectURL:  Settings.LinkedIn.RedirectURLHost + ":" + Settings.Port + "/api/services/login/callback",
+		Scopes: []string{
+			"r_basicprofile",
+			"r_emailaddress",
+		},
+		Endpoint: linkedin.Endpoint,
+	}
 }
