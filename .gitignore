@@ -18,3 +18,4 @@ vendor/
 
 # Environment variables file
 .env
+.docker/env/
