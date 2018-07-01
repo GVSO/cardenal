@@ -10,16 +10,34 @@
     "react-dom": "^16.4.0"
   },
   "scripts": {
-    "start": "parcel public/index.html --hmr-port 5678"
+    "start": "parcel public/index.html --hmr-port 5678",
+    "standard": "standard **/*/*.tsx",
+    "standard:fix": "standard **/*/*.tsx --fix"
   },
   "devDependencies": {
+    "@types/classnames": "^2.2.4",
     "@types/enzyme": "^3.1.11",
     "@types/material-ui": "^0.21.3",
     "@types/react": "^16.4.6",
     "@types/react-dom": "^16.0.6",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
+    "eslint-plugin-typescript": "^0.12.0",
     "node-sass": "^4.9.0",
-    "typescript": "^2.9.2"
+    "standard": "^11.0.1",
+    "typescript": "^2.9.2",
+    "typescript-eslint-parser": "^16.0.1"
+  },
+  "standard": {
+    "parser": "typescript-eslint-parser",
+    "plugins": [
+      "typescript"
+    ],
+    "ignore": [
+      "node_modules/",
+      "dist/",
+      ".cache/",
+      "src/registerServiceWorker.js"
+    ]
   }
 }
