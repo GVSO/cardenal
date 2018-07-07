@@ -8,18 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/globalsign/mgo"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
-  ]
-  revision = "113d3961e7311526535a1ef7042196563d442761"
-
-[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
@@ -57,12 +45,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/vektra/mockery"
-  packages = ["."]
-  revision = "2a9162cbfb7a0f9094ed6f765d212a5ddee000d3"
-
-[[projects]]
-  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -97,6 +79,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a2452edef2a0106b04c3d88e43c41fbdc6a1fb51f910eca37ddcf0fc68daf160"
+  inputs-digest = "51d4488b57862dfa6e36f3c20d583abe46e5ee3acc5300354a9b1362be55f2b6"
   solver-name = "gps-cdcl"
   solver-version = 1
