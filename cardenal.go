@@ -5,12 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gvso/cardenal/settings"
 )
-
-// Exception for request errors.
-type Exception struct {
-	Message string `json:"message"`
-}
 
 func main() {
 
@@ -24,7 +20,7 @@ func main() {
 
 	router.HandleFunc("/{rest:.*}", clientHandler)
 
-	port := ":" + Settings.Port
+	port := ":" + settings.Port
 
 	log.Print("Server application started at ", "http://localhost"+port)
 

@@ -10,6 +10,7 @@ go
 # Folders created by building/dependency manager tools
 tmp/
 vendor/
+vendor.orig/
 
 # Environment variables file
 .env
