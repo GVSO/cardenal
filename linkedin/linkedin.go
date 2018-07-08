@@ -22,7 +22,7 @@ import (
  * @see https://developer.linkedin.com/docs/fields/basic-profile
  */
 var fields = []string{"id", "first-name", "last-name", "headline", "industry",
-	"picture-urls::(original)", "specialties", "positions", "public-profile-ul"}
+	"picture-urls::(original)", "specialties", "positions", "public-profile-url"}
 
 var conf *oauth2.Config
 
@@ -139,7 +139,7 @@ func getConfig() *oauth2.Config {
 	}
 }
 
-// HTTPClient is an interface for http.Client.
+// HTTPClient is an interface for HTTP clients.
 type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
