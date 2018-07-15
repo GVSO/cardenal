@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-
-	"github.com/joho/godotenv"
 )
 
 // LinkedInConfig is the structure of LinkedIn settings.
@@ -25,8 +23,6 @@ var Development bool
 var LinkedIn LinkedInConfig
 
 func init() {
-	godotenv.Load()
-
 	initSettings()
 }
 

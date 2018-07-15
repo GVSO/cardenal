@@ -2,27 +2,29 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/settings"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 
-	router := mux.NewRouter()
+	router := gin.Default()
 
-	servicesRouter := router.PathPrefix("/api/services").Subrouter()
-	servicesRouter.HandleFunc("/login", loginHandler)
-	servicesRouter.HandleFunc("/login/callback", callbackHandler)
+	services := router.Group("/api/services")
+	{
+		services.GET("/login", loginHandler)
+		services.GET("/login/callback", callbackHandler)
+	}
 
-	//dataRouter := router.PathPrefix("/api/data").Subrouter()
-
-	router.HandleFunc("/{rest:.*}", clientHandler)
+	router.Use(static.Serve("/", static.LocalFile("./client/dist", true)))
 
 	port := ":" + settings.Port
 
 	log.Print("Server application started at ", "http://localhost"+port)
 
-	log.Fatal(http.ListenAndServe(port, router))
+	router.Run(port)
 }

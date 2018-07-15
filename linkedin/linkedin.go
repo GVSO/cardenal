@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/constants"
 	"github.com/gvso/cardenal/settings"
 
@@ -27,37 +28,37 @@ var fields = []string{"id", "first-name", "last-name", "headline", "industry",
 var conf *oauth2.Config
 
 // Login starts authorization request to LinkedIn.
-func Login(w http.ResponseWriter, r *http.Request) {
+func Login(c *gin.Context) {
 	conf = getConfig()
 
 	fmt.Println(conf.RedirectURL)
 	url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 
-	http.Redirect(w, r, url, 303)
+	c.Redirect(302, url)
 }
 
 // Callback handles LinkedIn API callback.
-func Callback(w http.ResponseWriter, r *http.Request) {
+func Callback(c *gin.Context) {
 	conf = getConfig()
 
 	ctx := context.Background()
 
 	// If there was an error when authenticating.
-	if r.URL.Query()["error"] != nil {
+	if c.Request.URL.Query()["error"] != nil {
 		// @TODO: redirect to error page.
-		fmt.Fprint(w, "Could not login.")
+		c.String(http.StatusOK, "Could not login.")
 
 		return
 	}
 
-	code := r.URL.Query()["code"][0]
+	code := c.Request.URL.Query()["code"][0]
 
 	tok, err := conf.Exchange(ctx, code)
 	if err != nil {
 		log.Println(err)
 
 		// @TODO: redirect to error page.
-		fmt.Fprint(w, "Could not login.")
+		c.String(http.StatusOK, "Could not login.")
 
 		return
 	}
@@ -73,12 +74,10 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// @TODO: redirect to error page.
-		fmt.Fprint(w, "Could not login.")
+		c.String(http.StatusBadRequest, "Could not login.")
 
 		return
 	}
-
-	w.Header().Add("Content-Type", "application/json")
 
 	// At this point, we know data is a slice of bytes. Convert it to string.
 	d := string(data)
@@ -91,7 +90,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 
 	//maputils.DumpMap("", dataMap)
 
-	fmt.Fprint(w, d)
+	c.JSON(200, dataMap)
 }
 
 // Gets profile data from LinkedIn.
