@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"testing"
@@ -51,24 +50,19 @@ func TestInitiSettings(t *testing.T) {
 
 			// Assert Development value.
 			expected, _ := strconv.ParseBool(environment["DEVELOPMENT"])
-			msg := fmt.Sprintf("settings.Development should be %v; got %v", environment["DEVELOPMENT"], Development)
-			assert.Equal(expected, Development, msg)
+			assert.Equal(expected, Development)
 
 			// Assert Port value.
-			msg = fmt.Sprintf("settings.Port should be %v; got %v", environment["GO_PORT"], Port)
-			assert.Equal(environment["GO_PORT"], Port, msg)
+			assert.Equal(environment["GO_PORT"], Port)
 
 			// Assert LinkedIn.ClientID value.
-			msg = fmt.Sprintf("settings.LinkedIn.ClientID should be %v; got %v", environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID)
-			assert.Equal(environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID, msg)
+			assert.Equal(environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID)
 
 			// Assert LinkedIn.ClientSecret value.
-			msg = fmt.Sprintf("settings.LinkedIn.ClientSecret should be %v; got %v", environment["LINKEDIN_CLIENT_SECRET"], LinkedIn.ClientSecret)
-			assert.Equal(environment["LINKEDIN_CLIENT_SECRET"], LinkedIn.ClientSecret, msg)
+			assert.Equal(environment["LINKEDIN_CLIENT_SECRET"], LinkedIn.ClientSecret)
 
 			// Assert LinkedIn.RedirectURLHost value.
-			msg = fmt.Sprintf("settings.LinkedIn.RedirectURLHost should be %v; got %v", environment["LINKEDIN_REDIRECT_URL_HOST"], LinkedIn.RedirectURLHost)
-			assert.Equal(environment["LINKEDIN_REDIRECT_URL_HOST"], LinkedIn.RedirectURLHost, msg)
+			assert.Equal(environment["LINKEDIN_REDIRECT_URL_HOST"], LinkedIn.RedirectURLHost)
 
 		})
 	}

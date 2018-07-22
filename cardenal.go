@@ -6,12 +6,9 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/settings"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
-
 	router := setupRouter()
 
 	port := ":" + settings.Port

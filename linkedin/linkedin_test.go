@@ -28,7 +28,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestCallback(t *testing.T) {
-	gin.SetMode("release")
+	gin.SetMode(gin.ReleaseMode)
 
 	assert := assert.New(t)
 
