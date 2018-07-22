@@ -41,10 +41,6 @@
   version = "1.2.2"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/vektra/mockery"
-
-[[constraint]]
   name = "github.com/gin-gonic/gin"
   version = "1.2.0"
 

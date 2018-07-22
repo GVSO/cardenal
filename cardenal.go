@@ -12,6 +12,16 @@ import (
 func main() {
 	godotenv.Load()
 
+	router := setupRouter()
+
+	port := ":" + settings.Port
+
+	log.Print("Server application started at ", "http://localhost"+port)
+
+	router.Run(port)
+}
+
+func setupRouter() *gin.Engine {
 	router := gin.Default()
 
 	services := router.Group("/api/services")
@@ -22,9 +32,5 @@ func main() {
 
 	router.Use(static.Serve("/", static.LocalFile("./client/dist", true)))
 
-	port := ":" + settings.Port
-
-	log.Print("Server application started at ", "http://localhost"+port)
-
-	router.Run(port)
+	return router
 }

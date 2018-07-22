@@ -1,25 +1,53 @@
 package linkedin
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"golang.org/x/oauth2"
+
+	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/constants"
+	"github.com/gvso/cardenal/linkedin/mocks"
 	"golang.org/x/oauth2/linkedin"
 
 	"github.com/gvso/cardenal/settings"
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLogin(t *testing.T) {
+	assert := assert.New(t)
+
+	context := mocks.GinContext{}
+
+	Login(context)
+
+	assert.Equal(true, context.WasRedirectedCalled(), "Redirect was not called")
+}
+
+func TestCallback(t *testing.T) {
+	gin.SetMode("release")
+
+	assert := assert.New(t)
+
+	router := setupRouter()
+
+	testErrorParam(assert, router)
+
+	conf = mocks.OAuth2Config{}
+	testWrongCode(assert, router, conf)
+
+	testCorrectCode(assert, router, conf)
+}
+
 func TestGetProfile(t *testing.T) {
 	settings.Development = true
 
 	assert := assert.New(t)
 
-	client := HTTPClientMock{}
+	client := mocks.HTTPClient{}
 
 	// First time should be 200.
 	data, err := getProfile(client)
@@ -58,7 +86,7 @@ func TestGetConfig(t *testing.T) {
 	}
 	settings.Port = "8000"
 
-	config := getConfig()
+	config := getConfig().(*oauth2.Config)
 
 	assert := assert.New(t)
 
@@ -72,41 +100,107 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(linkedin.Endpoint, config.Endpoint, "endpoint is not correct")
 }
 
-type HTTPClientMock struct{}
+// Test when LinkedIn returns the 'error' parameter.
+//
+// For instance, when user denied authorization, LinkedIn returns an error
+// parameter, so user shouldn't be logged in in this case.
+func testErrorParam(assert *assert.Assertions, router *gin.Engine) {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
 
-var i int
+	q := req.URL.Query()
+	q.Add("error", "access_denied")
+	req.URL.RawQuery = q.Encode()
 
-func (_m HTTPClientMock) Get(url string) (*http.Response, error) {
-	// First call is successful.
-	if i == 0 {
-		i++
-		return &http.Response{
-			Status:     "200 OK",
-			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte("Successful data"))),
-		}, nil
+	router.ServeHTTP(w, req)
+
+	assert.Equal(http.StatusBadRequest, w.Code)
+	assert.Equal("Could not login.", w.Body.String())
+}
+
+// Test when the returned code from LinkedIn is not valid and token could not be
+// generated
+func testWrongCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2Config) {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
+
+	q := req.URL.Query()
+	q.Add("code", "incorrect_code123")
+	req.URL.RawQuery = q.Encode()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(http.StatusBadRequest, w.Code)
+	assert.Equal("Could not login.", w.Body.String())
+}
+
+// Test when the returned code from LinkedIn is valid and token could be
+// generated
+func testCorrectCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2Config) {
+	// Overwrites profileRetriever
+	profileRetriever = NewProfileRetriever(getProfileMock)
+
+	settings.Development = true
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
+
+	testSuccessfulDataRetrieval(assert, router, w, req)
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/api/services/login/callback", nil)
+
+	testFailedDataRetrieval(assert, router, w, req)
+}
+
+// Test when data could be retrieved from LinkedIn.
+func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *httptest.ResponseRecorder, req *http.Request) {
+	q := req.URL.Query()
+	q.Add("code", "correct_code_succesful_data_retrieval")
+	req.URL.RawQuery = q.Encode()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(http.StatusOK, w.Code)
+	assert.Equal("{\"data\":\"data\"}", w.Body.String())
+}
+
+// Test when data could not be retrieved from LinkedIn even if token was
+// succesfully generated.
+func testFailedDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *httptest.ResponseRecorder, req *http.Request) {
+	q := req.URL.Query()
+	q.Add("code", "correct_code_failed_data_retrieval")
+	req.URL.RawQuery = q.Encode()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(http.StatusBadRequest, w.Code)
+	assert.Equal("Could not login.", w.Body.String())
+}
+
+// Set up router to test callback.
+func setupRouter() *gin.Engine {
+	router := gin.Default()
+
+	services := router.Group("/api/services")
+	{
+		services.GET("/login/callback", Callback)
 	}
 
-	// Second call is forbidden.
-	if i == 1 {
-		i++
-		return &http.Response{
-			Status:     "403 Forbidden",
-			StatusCode: 403,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte("Forbidden"))),
-		}, nil
-	}
+	return router
+}
 
-	// Third call is bad request.
-	if i == 2 {
-		i++
-		return &http.Response{
-			Status:     "400 Bad Request",
-			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte("Bad request"))),
-		}, nil
-	}
+// Mock getProfile function
+func getProfileMock(client HTTPClient) ([]byte, error) {
+	fmt.Println(mocks.GetAccessToken())
+	switch mocks.GetAccessToken() {
+	case "token_enable_data_retrieval":
+		return []byte("{\"data\":\"data\"}"), nil
 
-	// Following calls return an error.
-	return nil, fmt.Errorf("Error on request")
+	case "token_disable_data_retrieval":
+		return nil, fmt.Errorf("data could not be retrieved")
+
+	default:
+		return nil, fmt.Errorf("unexpected error")
+	}
 }
