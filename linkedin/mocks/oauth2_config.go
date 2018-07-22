@@ -14,7 +14,7 @@ type OAuth2Config struct{}
 var token *oauth2.Token
 
 // Exchange mocks the exchange of a code for a token.
-func (_m OAuth2Config) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
+func (_m OAuth2Config) Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
 
 	switch code {
 	case "correct_code_succesful_data_retrieval":
