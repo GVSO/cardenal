@@ -2,6 +2,6 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "jsx": "react",
-    "types": [ "material-ui"]
+    "types": ["material-ui"]
   }
 }

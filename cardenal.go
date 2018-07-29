@@ -27,7 +27,13 @@ func setupRouter() *gin.Engine {
 		services.GET("/login/callback", callbackHandler)
 	}
 
+	// Used to load css, js, and images files.
 	router.Use(static.Serve("/", static.LocalFile("./client/dist", true)))
+
+	// If route was not defined in Go server, make React handle route.
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./client/dist/index.html")
+	})
 
 	return router
 }

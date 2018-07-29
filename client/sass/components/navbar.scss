@@ -4,12 +4,25 @@
  *
  * @see https://material-ui.com/customization/overrides/#overriding-with-classes
  */
-header {
-  &.navbar {
-    max-height: 50px;
-  }
 
+@import '../breakpoints.scss';
+
+header {
   .toolbar {
-    min-height: 50px;
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    @media (max-width: $screen-md-min) {
+      .search-bar {
+        margin-left: 15px;
+        flex-basis: 70%;
+      }
+    }
   }
 }

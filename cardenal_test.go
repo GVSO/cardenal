@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Tests paths under /api/service route.
 func TestServiceRoutes(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
 
@@ -16,7 +17,7 @@ func TestServiceRoutes(t *testing.T) {
 	testLoginCallbackRoute(t)
 }
 
-// Test the LinkedIn login route.
+// Tests the LinkedIn login route.
 //
 // We expect to get a redirection to LinkedIn service.
 func testLoginRoute(t *testing.T) {
@@ -29,7 +30,7 @@ func testLoginRoute(t *testing.T) {
 	assert.Equal(t, 302, w.Code)
 }
 
-// Test the callback route after user has authenticated with LinkedIn.
+// Tests the callback route after user has authenticated with LinkedIn.
 //
 // TODO: We might need to test all the cases as we do in the linkedin package.
 func testLoginCallbackRoute(t *testing.T) {
