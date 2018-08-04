@@ -6,15 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"golang.org/x/oauth2"
-
 	"github.com/gin-gonic/gin"
-	"github.com/gvso/cardenal/constants"
-	"github.com/gvso/cardenal/linkedin/mocks"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
 
-	"github.com/gvso/cardenal/settings"
-	"github.com/stretchr/testify/assert"
+	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/linkedin/mocks"
+	"github.com/gvso/cardenal/src/app/settings"
 )
 
 func TestLogin(t *testing.T) {

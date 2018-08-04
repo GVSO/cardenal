@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gvso/cardenal/linkedin"
+	"github.com/gvso/cardenal/src/app/linkedin"
 )
 
 func loginHandler(c *gin.Context) {

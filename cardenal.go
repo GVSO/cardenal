@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/gvso/cardenal/settings"
+	"github.com/gvso/cardenal/src/app/settings"
 )
 
 func main() {

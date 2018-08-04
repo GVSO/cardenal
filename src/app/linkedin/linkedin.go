@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gvso/cardenal/constants"
-	"github.com/gvso/cardenal/settings"
+	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/settings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
