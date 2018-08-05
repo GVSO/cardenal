@@ -6,12 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	jwtlibrary "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
 
 	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/linkedin/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
 )
@@ -19,11 +21,11 @@ import (
 func TestLogin(t *testing.T) {
 	assert := assert.New(t)
 
-	context := mocks.GinContext{}
+	context := &mocks.GinContext{}
 
 	Login(context)
 
-	assert.Equal(true, context.WasRedirectedCalled(), "Redirect was not called")
+	assert.Equal(true, context.WasRedirectedCalled())
 }
 
 func TestCallback(t *testing.T) {
@@ -42,11 +44,9 @@ func TestCallback(t *testing.T) {
 }
 
 func TestGetProfile(t *testing.T) {
-	settings.Development = true
-
 	assert := assert.New(t)
 
-	client := mocks.HTTPClient{}
+	client := &mocks.HTTPClient{}
 
 	// First time should be 200.
 	data, err := getProfile(client)
@@ -74,6 +74,23 @@ func TestGetProfile(t *testing.T) {
 	assert.NotNil(err)
 	assert.Equal("Error on request", err.Error(), "error messages do not match")
 	assert.Nil(data)
+}
+
+func TestSetCookie(t *testing.T) {
+	assert := assert.New(t)
+
+	context := &mocks.GinContext{}
+
+	user := map[string]interface{}{
+		"id":        "JohnId123",
+		"firstName": "John",
+		"lastName":  "Smith",
+	}
+
+	setCookie(context, user)
+
+	assert.Equal(true, context.WasRedirectedCalled())
+	assert.Equal(true, isTokenValid(context.Token))
 }
 func TestGetConfig(t *testing.T) {
 
@@ -161,7 +178,7 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 	router.ServeHTTP(w, req)
 
 	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"data\":\"data\"}", w.Body.String())
+	assert.Equal("{\"firstName\":\"john\",\"id\":\"id1234\",\"lastName\":\"Smith\"}", w.Body.String())
 }
 
 // Test when data could not be retrieved from LinkedIn even if token was
@@ -175,6 +192,24 @@ func testFailedDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *h
 
 	assert.Equal(http.StatusBadRequest, w.Code)
 	assert.Equal("Could not login.", w.Body.String())
+}
+
+// Checks that generated token stored in cookie is valid.
+//
+// It parses the token string and check for errors and validity of token. If no
+// errors are produced and token is valid, return true.
+func isTokenValid(tokenString string) bool {
+	token, err := jwtlibrary.Parse(tokenString, jwt.KeyFunction)
+
+	if err != nil {
+		return false
+	}
+
+	if token.Valid {
+		return true
+	}
+
+	return false
 }
 
 // Set up router to test callback.
@@ -191,10 +226,10 @@ func setupRouter() *gin.Engine {
 
 // Mock getProfile function
 func getProfileMock(client HTTPClient) ([]byte, error) {
-	fmt.Println(mocks.GetAccessToken())
+
 	switch mocks.GetAccessToken() {
 	case "token_enable_data_retrieval":
-		return []byte("{\"data\":\"data\"}"), nil
+		return []byte("{\"firstName\":\"john\", \"id\":\"id1234\", \"lastName\": \"Smith\"}"), nil
 
 	case "token_disable_data_retrieval":
 		return nil, fmt.Errorf("data could not be retrieved")

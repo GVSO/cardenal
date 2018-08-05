@@ -11,7 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/settings"
+	"github.com/gvso/cardenal/src/app/utils/timeutils"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
@@ -92,16 +94,18 @@ func Callback(c *gin.Context) {
 		return
 	}
 
-	// At this point, we know data is a slice of bytes. Convert it to string.
-	d := string(data)
-
 	dataMap := make(map[string]interface{})
-	err = json.Unmarshal([]byte(d), &dataMap)
+	err = json.Unmarshal(data, &dataMap)
 	if err != nil {
 		panic(err)
 	}
 
 	//maputils.DumpMap("", dataMap)
+
+	err = setCookie(c, dataMap)
+	if err != nil {
+		panic(err)
+	}
 
 	c.JSON(200, dataMap)
 }
@@ -137,6 +141,28 @@ func getProfile(client HTTPClient) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+// Sets token value in cookie.
+//
+// It gets the user firstname, lastanme and id on LinkedIn and create a JWT
+// token which is later stored in cookie that expires in 7 days.
+func setCookie(c GinContext, user map[string]interface{}) error {
+	data := make(map[string]string)
+
+	data["id"] = user["id"].(string)
+	data["first_name"] = user["firstName"].(string)
+	data["last_name"] = user["lastName"].(string)
+
+	token, err := jwt.CreateToken(data)
+
+	if err != nil {
+		return err
+	}
+
+	c.SetCookie("token", token, timeutils.GetSeconds(7), "", "", false, true)
+
+	return nil
 }
 
 // Returns the OAuth2 client configuration.
@@ -182,6 +208,7 @@ type OAuth2Config interface {
 // GinContext is an interface for Gin Framework Context.
 type GinContext interface {
 	Redirect(code int, location string)
+	SetCookie(name string, value string, maxAge int, path string, domain string, secure bool, httpOnly bool)
 }
 
 // HTTPClient is an interface for HTTP clients.

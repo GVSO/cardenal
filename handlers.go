@@ -12,3 +12,7 @@ func loginHandler(c *gin.Context) {
 func callbackHandler(c *gin.Context) {
 	linkedin.Callback(c)
 }
+
+func userHandler(c *gin.Context) {
+	c.String(200, "success")
+}

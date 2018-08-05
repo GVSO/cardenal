@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/settings"
 )
 
@@ -25,6 +26,11 @@ func setupRouter() *gin.Engine {
 	{
 		services.GET("/login", loginHandler)
 		services.GET("/login/callback", callbackHandler)
+	}
+
+	data := router.Group("/api/data").Use(jwt.Validate)
+	{
+		data.GET("/user", userHandler)
 	}
 
 	// Used to load css, js, and images files.

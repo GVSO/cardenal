@@ -20,6 +20,7 @@ func TestInitiSettings(t *testing.T) {
 			environment: map[string]string{
 				"DEVELOPMENT":                "true",
 				"GO_PORT":                    "6000",
+				"JWT_KEY":                    "key",
 				"LINKEDIN_CLIENT_ID":         "client123",
 				"LINKEDIN_CLIENT_SECRET":     "secret123",
 				"LINKEDIN_REDIRECT_URL_HOST": "http://localhost",
@@ -43,7 +44,7 @@ func TestInitiSettings(t *testing.T) {
 
 			// No environment variables, values should be empty.
 			if environment == nil {
-				assert.Equal("", Port, "port in settings to be empty")
+				assert.Equal("", Port)
 
 				return
 			}
@@ -54,6 +55,9 @@ func TestInitiSettings(t *testing.T) {
 
 			// Assert Port value.
 			assert.Equal(environment["GO_PORT"], Port)
+
+			// Assert JWT key value.
+			assert.Equal(environment["JWT_KEY"], string(JwtKey))
 
 			// Assert LinkedIn.ClientID value.
 			assert.Equal(environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID)
