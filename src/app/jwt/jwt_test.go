@@ -83,7 +83,7 @@ func testValidateHelperWithInvalidToken(c *globalmocks.GinContext, assert *asser
 
 	assert.True(c.StringCall.Called)
 	assert.Equal(500, c.StringCall.Code)
-	assert.Equal("token contains an invalid number of segments", c.StringCall.Format)
+	assert.Equal("Invalid token", c.StringCall.Format)
 
 	assert.False(c.SetCall.Called)
 	assert.True(c.AbortCall.Called)

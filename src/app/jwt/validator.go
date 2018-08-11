@@ -28,7 +28,7 @@ func validateHelper(c global.GinContext) {
 		if err != nil {
 			c.Abort()
 
-			c.String(500, "You could not be authenticated")
+			c.String(500, "Invalid token")
 
 			if settings.Development {
 				fmt.Println(err.Error())
