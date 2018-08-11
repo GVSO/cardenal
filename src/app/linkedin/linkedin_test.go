@@ -12,7 +12,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/linkedin"
 
-	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/global"
+	"github.com/gvso/cardenal/src/app/global/mocks"
 	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/linkedin/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
@@ -21,11 +22,16 @@ import (
 func TestLogin(t *testing.T) {
 	assert := assert.New(t)
 
-	context := &mocks.GinContext{}
+	context := &globalmocks.GinContext{}
 
 	Login(context)
 
-	assert.Equal(true, context.WasRedirectedCalled())
+	redirectURL := "https://www.linkedin.com/oauth/v2/authorization?access_type=offline&client_id=&redirect_uri=%3A%2Fapi%2Fservices%2Flogin%2Fcallback&response_type=code&scope=r_basicprofile+r_emailaddress&state=state"
+
+	// Asserts that function was called with correct arguments.
+	assert.True(context.RedirectCall.Called)
+	assert.Equal(302, context.RedirectCall.Code)
+	assert.Equal(redirectURL, context.RedirectCall.Location)
 }
 
 func TestCallback(t *testing.T) {
@@ -79,7 +85,7 @@ func TestGetProfile(t *testing.T) {
 func TestSetCookie(t *testing.T) {
 	assert := assert.New(t)
 
-	context := &mocks.GinContext{}
+	context := &globalmocks.GinContext{}
 
 	user := map[string]interface{}{
 		"id":        "JohnId123",
@@ -89,8 +95,15 @@ func TestSetCookie(t *testing.T) {
 
 	setCookie(context, user)
 
-	assert.Equal(true, context.WasRedirectedCalled())
-	assert.Equal(true, isTokenValid(context.Token))
+	// Assert that function was called with correct arguments.
+	assert.True(context.SetCookieCall.Called)
+	assert.Equal("token", context.SetCookieCall.Name)
+	assert.True(isTokenValid(context.SetCookieCall.Value))
+	assert.Equal(604800, context.SetCookieCall.MaxAge)
+	assert.Equal("/", context.SetCookieCall.Path)
+	assert.Equal("/", context.SetCookieCall.Path)
+	assert.False(context.SetCookieCall.Secure)
+	assert.True(context.SetCookieCall.HTTPOnly)
 }
 func TestGetConfig(t *testing.T) {
 
@@ -109,7 +122,7 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(settings.LinkedIn.ClientID, config.ClientID, "client ID is not correct")
 	assert.Equal(settings.LinkedIn.ClientSecret, config.ClientSecret, "client secret is not correct")
 
-	redirectURL := settings.LinkedIn.RedirectURLHost + ":" + settings.Port + constants.LinkedInRedirectPath
+	redirectURL := settings.LinkedIn.RedirectURLHost + ":" + settings.Port + global.LinkedInRedirectPath
 	assert.Equal(redirectURL, config.RedirectURL, "redirect URL is not correct")
 
 	assert.Equal([]string{"r_basicprofile", "r_emailaddress"}, config.Scopes, "scopes are not correct")
@@ -178,7 +191,7 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 	router.ServeHTTP(w, req)
 
 	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"firstName\":\"john\",\"id\":\"id1234\",\"lastName\":\"Smith\"}", w.Body.String())
+	assert.Equal("{\"firstName\":\"John\",\"id\":\"id1234\",\"lastName\":\"Smith\"}", w.Body.String())
 }
 
 // Test when data could not be retrieved from LinkedIn even if token was
@@ -229,7 +242,7 @@ func getProfileMock(client HTTPClient) ([]byte, error) {
 
 	switch mocks.GetAccessToken() {
 	case "token_enable_data_retrieval":
-		return []byte("{\"firstName\":\"john\", \"id\":\"id1234\", \"lastName\": \"Smith\"}"), nil
+		return []byte("{\"firstName\":\"John\", \"id\":\"id1234\", \"lastName\": \"Smith\"}"), nil
 
 	case "token_disable_data_retrieval":
 		return nil, fmt.Errorf("data could not be retrieved")

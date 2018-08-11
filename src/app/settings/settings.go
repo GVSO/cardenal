@@ -21,8 +21,8 @@ var Development bool
 // Port is the port in which Go app is running.
 var Port string
 
-// JwtKey is the secret key for JWT token encryption.
-var JwtKey []byte
+// JwtSecret is the secret for JWT token encoding.
+var JwtSecret []byte
 
 // LinkedIn holds settings for LinkedIn client.
 var LinkedIn LinkedInConfig
@@ -41,7 +41,7 @@ func initSettings() {
 
 	Development, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
 	Port = os.Getenv("GO_PORT")
-	JwtKey = []byte(os.Getenv("JWT_KEY"))
+	JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 	LinkedIn.ClientID = os.Getenv("LINKEDIN_CLIENT_ID")
 	LinkedIn.ClientSecret = os.Getenv("LINKEDIN_CLIENT_SECRET")

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gvso/cardenal/src/app/constants"
+	"github.com/gvso/cardenal/src/app/global"
 	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/settings"
 	"github.com/gvso/cardenal/src/app/utils/timeutils"
@@ -41,7 +41,7 @@ func init() {
 //
 // It generates the authentication url to LinkedIn and redirects the user for
 // authorization.
-func Login(c GinContext) {
+func Login(c global.GinContext) {
 	url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 
 	c.Redirect(302, url)
@@ -117,7 +117,7 @@ func getProfile(client HTTPClient) ([]byte, error) {
 	f := strings.Join(fields, ",")
 
 	// Request data from API.
-	resp, err := client.Get(constants.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
+	resp, err := client.Get(global.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
 
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func getProfile(client HTTPClient) ([]byte, error) {
 //
 // It gets the user firstname, lastanme and id on LinkedIn and create a JWT
 // token which is later stored in cookie that expires in 7 days.
-func setCookie(c GinContext, user map[string]interface{}) error {
+func setCookie(c global.GinContext, user map[string]interface{}) error {
 	data := make(map[string]string)
 
 	data["id"] = user["id"].(string)
@@ -160,7 +160,7 @@ func setCookie(c GinContext, user map[string]interface{}) error {
 		return err
 	}
 
-	c.SetCookie("token", token, timeutils.GetSeconds(7), "", "", false, true)
+	c.SetCookie("token", token, timeutils.GetSeconds(7), "/", "", false, true)
 
 	return nil
 }
@@ -173,7 +173,7 @@ func getConfig() OAuth2Config {
 	return &oauth2.Config{
 		ClientID:     settings.LinkedIn.ClientID,
 		ClientSecret: settings.LinkedIn.ClientSecret,
-		RedirectURL:  settings.LinkedIn.RedirectURLHost + ":" + settings.Port + constants.LinkedInRedirectPath,
+		RedirectURL:  settings.LinkedIn.RedirectURLHost + ":" + settings.Port + global.LinkedInRedirectPath,
 		Scopes: []string{
 			"r_basicprofile",
 			"r_emailaddress",
@@ -203,12 +203,6 @@ type OAuth2Config interface {
 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	Client(ctx context.Context, t *oauth2.Token) *http.Client
-}
-
-// GinContext is an interface for Gin Framework Context.
-type GinContext interface {
-	Redirect(code int, location string)
-	SetCookie(name string, value string, maxAge int, path string, domain string, secure bool, httpOnly bool)
 }
 
 // HTTPClient is an interface for HTTP clients.

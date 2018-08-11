@@ -1,4 +1,4 @@
-package constants
+package global
 
 // LinkedInRedirectPath is the path where LinkedIn redirects after
 // authentication.

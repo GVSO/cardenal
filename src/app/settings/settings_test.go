@@ -56,8 +56,8 @@ func TestInitiSettings(t *testing.T) {
 			// Assert Port value.
 			assert.Equal(environment["GO_PORT"], Port)
 
-			// Assert JWT key value.
-			assert.Equal(environment["JWT_KEY"], string(JwtKey))
+			// Assert JWT secret value.
+			assert.Equal(environment["JWT_SECRET"], string(JwtSecret))
 
 			// Assert LinkedIn.ClientID value.
 			assert.Equal(environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID)

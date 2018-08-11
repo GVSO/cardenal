@@ -21,5 +21,5 @@ func CreateToken(user map[string]string) (string, error) {
 		"exp":        time.Now().UTC().Add(ttl).Unix(),
 	})
 
-	return token.SignedString(settings.JwtKey)
+	return token.SignedString(settings.JwtSecret)
 }
