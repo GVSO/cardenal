@@ -193,23 +193,11 @@ type ProfileRetriever struct {
 	profileGetter
 }
 
-// NewProfileRetriever return a reference to a ProfileRetriever.
+// NewProfileRetriever returns a reference to a ProfileRetriever.
 func NewProfileRetriever(pg profileGetter) *ProfileRetriever {
 	return &ProfileRetriever{profileGetter: pg}
 }
 
 func (p *ProfileRetriever) getProfile(client HTTPClient) ([]byte, error) {
 	return p.profileGetter(client)
-}
-
-// OAuth2Config is an interface for oauth2.Config
-type OAuth2Config interface {
-	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
-	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
-	Client(ctx context.Context, t *oauth2.Token) *http.Client
-}
-
-// HTTPClient is an interface for HTTP clients.
-type HTTPClient interface {
-	Get(url string) (resp *http.Response, err error)
 }

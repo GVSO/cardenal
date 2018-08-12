@@ -19,6 +19,7 @@ type LinkedInConfig struct {
 type MongoDBConfig struct {
 	Host     string
 	Port     string
+	Database string
 	User     string
 	Password string
 }
@@ -38,8 +39,6 @@ var LinkedIn LinkedInConfig
 // MongoDB holds settings for MongoDB connection
 var MongoDB MongoDBConfig
 
-// MongoPassw
-
 func init() {
 	godotenv.Load()
 	initSettings()
@@ -56,12 +55,17 @@ func initSettings() {
 	Port = os.Getenv("GO_PORT")
 	JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
-	LinkedIn.ClientID = os.Getenv("LINKEDIN_CLIENT_ID")
-	LinkedIn.ClientSecret = os.Getenv("LINKEDIN_CLIENT_SECRET")
-	LinkedIn.RedirectURLHost = os.Getenv("LINKEDIN_REDIRECT_URL_HOST")
+	LinkedIn = LinkedInConfig{
+		os.Getenv("LINKEDIN_CLIENT_ID"),
+		os.Getenv("LINKEDIN_CLIENT_SECRET"),
+		os.Getenv("LINKEDIN_REDIRECT_URL_HOST"),
+	}
 
-	MongoDB.Host = os.Getenv("MONGO_HOST")
-	MongoDB.Port = os.Getenv("MONGO_PORT")
-	MongoDB.User = os.Getenv("MONGO_USER")
-	MongoDB.Password = os.Getenv("MONGO_PASSWORD")
+	MongoDB = MongoDBConfig{
+		os.Getenv("MONGO_HOST"),
+		os.Getenv("MONGO_PORT"),
+		os.Getenv("MONGO_DB"),
+		os.Getenv("MONGO_USER"),
+		os.Getenv("MONGO_PASSWORD"),
+	}
 }

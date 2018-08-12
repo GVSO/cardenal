@@ -26,6 +26,7 @@ func TestInitiSettings(t *testing.T) {
 				"LINKEDIN_REDIRECT_URL_HOST": "http://localhost",
 				"MONGO_HOST":                 "localhost",
 				"MONGO_PORT":                 "27017",
+				"MONGO_DB":                   "mydb",
 				"MONGO_USER":                 "mongouser",
 				"MONGO_PASSWORD":             "password123",
 			},
@@ -71,6 +72,7 @@ func TestInitiSettings(t *testing.T) {
 			// Asserts MongoDB setting values.
 			assert.Equal(environment["MONGO_HOST"], MongoDB.Host)
 			assert.Equal(environment["MONGO_PORT"], MongoDB.Port)
+			assert.Equal(environment["MONGO_DB"], MongoDB.Database)
 			assert.Equal(environment["MONGO_USER"], MongoDB.User)
 			assert.Equal(environment["MONGO_PASSWORD"], MongoDB.Password)
 		})

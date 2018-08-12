@@ -10,14 +10,11 @@ import (
 
 var collection *mongo.Collection
 
-func init() {
-	startConnection()
-
-	collection = getCollection()
-}
-
 // InsertUser inserts a new user.
 func InsertUser(user map[string]interface{}) {
+
+	collection = getCollection()
+
 	res, err := collection.InsertOne(context.Background(), user)
 	if err != nil {
 		log.Fatal(err)
@@ -29,5 +26,7 @@ func InsertUser(user map[string]interface{}) {
 }
 
 func getCollection() *mongo.Collection {
+	startConnection()
+
 	return database.Collection("users")
 }
