@@ -29,21 +29,27 @@ var fields = []string{"id", "first-name", "last-name", "headline", "industry",
 
 var conf OAuth2Config
 
-var profileRetriever *ProfileRetriever
-
 /**
- * Helper functions from external packages.
+ * Helper functions from external packages and internal functions.
  *
- * For testing purposes, variables are declared which are defined as in external
- * packages. The advantage of doing this is that these variables can later be
- * overwritten for unit testing purposes.
+ * For testing purposes, variables are declared which are defined as pointers to
+ * function. The advantage of doing this is that these variables can later be
+ * overwritten in the testing files.
  */
 var processUserAuth = user.ProcessUserAuth
+var getProfile func(client HTTPClient) ([]byte, error)
+var setCookie func(c global.GinContext, user map[string]string) error
+var processSuccessfulAuth func(c global.GinContext, data []byte) (map[string]string, error)
 
 func init() {
 	conf = getConfig().(*oauth2.Config)
 
-	profileRetriever = NewProfileRetriever(getProfile)
+	// Initializes getProfile variable.
+	initGetProfile()
+	// Initializes setCookie variable.
+	initSetCookie()
+	// Initializes processSuccessfulAuth variable.
+	initProcessSuccessfulAuth()
 }
 
 // Login starts authorization request to LinkedIn.
@@ -72,8 +78,7 @@ func Callback(c *gin.Context) {
 
 	// If there was an error when authenticating.
 	if c.Query("error") != "" {
-		// @TODO: redirect to error page.
-		c.String(http.StatusBadRequest, "Could not login.")
+		processBadRequest(c, fmt.Errorf(c.Query("error")))
 
 		return
 	}
@@ -82,91 +87,37 @@ func Callback(c *gin.Context) {
 
 	tok, err := conf.Exchange(ctx, code)
 	if err != nil {
-		log.Println(err)
-
-		// @TODO: redirect to error page.
-		c.String(http.StatusBadRequest, "Could not login.")
+		processBadRequest(c, err)
 
 		return
 	}
 
 	client := conf.Client(ctx, tok)
 
-	data, err := profileRetriever.getProfile(client)
+	data, err := getProfile(client)
 	if err != nil {
-		if settings.Development {
-			log.Println(err)
-		}
-
-		// @TODO: redirect to error page.
-		c.String(http.StatusBadRequest, "Could not login.")
+		processBadRequest(c, err)
 
 		return
 	}
 
-	processSuccessfulAuth(c, data)
+	userMap, err := processSuccessfulAuth(c, data)
+	if err != nil {
+		processBadRequest(c, err)
+
+		return
+	}
+
+	c.JSON(200, userMap)
 }
 
-// Manages workflow when authentication and data gathering have succeded.
-//
-// It process the user data and authentication workflow. Then, it sets or
-// updates the token in cookies.
-func processSuccessfulAuth(c global.GinContext, data []byte) {
-	user, err := processUserAuth(data)
-
-	err = setCookie(c, user)
-	if err != nil {
-		panic(err)
+func processBadRequest(c *gin.Context, err error) {
+	if settings.Development {
+		log.Println(err)
 	}
 
-	c.JSON(200, user)
-}
-
-// Gets profile data from LinkedIn.
-//
-// It is used by Callback to request basic user information from LinkedIn API.
-func getProfile(client HTTPClient) ([]byte, error) {
-	f := strings.Join(fields, ",")
-
-	// Request data from API.
-	resp, err := client.Get(global.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-
-		if settings.Development {
-			log.Println(string(data))
-		}
-
-		return nil, fmt.Errorf("request was not successful")
-	}
-
-	return data, nil
-}
-
-// Sets token value in cookie.
-//
-// It gets the user firstname, lastanme and id on LinkedIn and create a JWT
-// token which is later stored in cookie that expires in 7 days.
-func setCookie(c global.GinContext, user map[string]string) error {
-	token, err := jwt.CreateToken(user)
-
-	if err != nil {
-		return err
-	}
-
-	c.SetCookie("token", token, timeutils.GetSeconds(7), "/", "", false, true)
-
-	return nil
+	// @TODO: redirect to error page.
+	c.String(http.StatusBadRequest, "Could not login.")
 }
 
 // Returns the OAuth2 client configuration.
@@ -186,18 +137,70 @@ func getConfig() OAuth2Config {
 	}
 }
 
-type profileGetter func(client HTTPClient) ([]byte, error)
+func initGetProfile() {
+	// Gets profile data from LinkedIn.
+	//
+	// It is used by Callback to request basic user information from LinkedIn API.
+	getProfile = func(client HTTPClient) ([]byte, error) {
+		f := strings.Join(fields, ",")
 
-// ProfileRetriever implements methods to return LinkedIn profile data.
-type ProfileRetriever struct {
-	profileGetter
+		// Request data from API.
+		resp, err := client.Get(global.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
+		if err != nil {
+			return nil, err
+		}
+
+		defer resp.Body.Close()
+
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+
+			if settings.Development {
+				log.Println(string(data))
+			}
+
+			return nil, fmt.Errorf("request was not successful")
+		}
+
+		return data, nil
+	}
 }
 
-// NewProfileRetriever returns a reference to a ProfileRetriever.
-func NewProfileRetriever(pg profileGetter) *ProfileRetriever {
-	return &ProfileRetriever{profileGetter: pg}
+func initSetCookie() {
+	// Sets token value in cookie.
+	//
+	// It gets the user firstname, lastanme and id on LinkedIn and create a JWT
+	// token which is later stored in cookie that expires in 7 days.
+	setCookie = func(c global.GinContext, user map[string]string) error {
+		token, err := jwt.CreateToken(user)
+
+		if err != nil {
+			return err
+		}
+
+		c.SetCookie("token", token, timeutils.GetSeconds(7), "/", "", false, true)
+
+		return nil
+	}
 }
 
-func (p *ProfileRetriever) getProfile(client HTTPClient) ([]byte, error) {
-	return p.profileGetter(client)
+func initProcessSuccessfulAuth() {
+	// Manages workflow when authentication and data gathering have succeded.
+	//
+	// It process the user data and authentication workflow. Then, it sets or
+	// updates the token in cookies.
+	processSuccessfulAuth = func(c global.GinContext, data []byte) (map[string]string, error) {
+		user, err := processUserAuth(data)
+
+		err = setCookie(c, user)
+		if err != nil {
+			return nil, err
+		}
+
+		return user, nil
+	}
 }

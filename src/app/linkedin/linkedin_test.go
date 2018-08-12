@@ -70,16 +70,32 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 		return userMap, nil
 	}
 
-	processSuccessfulAuth(c, []byte("{\"firstName\":\"John\",\"id\":\"JohnId123\",\"lastName\":\"Smith\"}"))
+	arg := []byte("{\"firstName\":\"John\",\"id\":\"JohnId123\",\"lastName\":\"Smith\"}")
 
-	// Asserst that JSON was called correctly.
-	assert.True(c.JSONCall.Called)
-	assert.Equal(200, c.JSONCall.Code)
-	assert.Equal(userMap, c.JSONCall.Obj)
+	user, err := processSuccessfulAuth(c, arg)
+
+	// Asserts the returning values of the function.
+	assert.Nil(err)
+	assert.Equal(userMap, user)
 
 	// Asserts the SetCookie was called correctly.
 	assert.True(c.SetCookieCall.Called)
 	assert.Equal("token", c.SetCookieCall.Name)
+
+	//////////////////////////////////////////
+	// Tests when setCokie returns an error.//
+	//////////////////////////////////////////
+	oldSetCookie := setCookie
+	defer func() { setCookie = oldSetCookie }()
+
+	// Overwrites setCookie function.
+	setCookie = setCookieErrorMock
+
+	user, err = processSuccessfulAuth(c, arg)
+
+	// Asserts the returning values of the function.
+	assert.Nil(user)
+	assert.NotNil(err)
 }
 
 func TestGetProfile(t *testing.T) {
@@ -199,8 +215,12 @@ func testCallbackWithWrongCode(assert *assert.Assertions, router *gin.Engine) {
 // Tests when the returned code from LinkedIn is valid and token could be
 // generated
 func testCallbackWithCorrectCode(assert *assert.Assertions, router *gin.Engine) {
-	// Overwrites profileRetriever
-	profileRetriever = NewProfileRetriever(getProfileMock)
+	// Saves current function and restores it at the end.
+	old := getProfile
+	defer func() { getProfile = old }()
+
+	// Overwrites getProfile function.
+	getProfile = getProfileMock
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
@@ -238,11 +258,33 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 
 	assert.Equal(http.StatusOK, w.Code)
 	assert.Equal("{\"first_name\":\"John\",\"id\":\"JohnId123\",\"last_name\":\"Smith\"}", w.Body.String())
+
+	////////////////////////////////////////////////////////
+	// Tests when processSuccessfulAuth returns an error. //
+	////////////////////////////////////////////////////////
+
+	// Saves current function and restores it at the end.
+	oldProcessSuccessfulAuth := processSuccessfulAuth
+	defer func() { processSuccessfulAuth = oldProcessSuccessfulAuth }()
+
+	// Overwrites processUserAuth function.
+	processSuccessfulAuth = func(c global.GinContext, data []byte) (map[string]string, error) {
+		return nil, fmt.Errorf("could not set cookie")
+	}
+
+	// Creates new recorder
+	w = httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	assert.Equal(http.StatusBadRequest, w.Code)
+	assert.Equal("Could not login.", w.Body.String())
 }
 
 // Test when data could not be retrieved from LinkedIn even if token was
 // succesfully generated.
 func testFailedDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *httptest.ResponseRecorder, req *http.Request) {
+	settings.Development = true
+
 	q := req.URL.Query()
 	q.Add("code", "correct_code_failed_data_retrieval")
 	req.URL.RawQuery = q.Encode()
@@ -296,4 +338,9 @@ func getProfileMock(client HTTPClient) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unexpected error")
 	}
+}
+
+// Mock setCookie that returns an error.
+func setCookieErrorMock(c global.GinContext, user map[string]string) error {
+	return fmt.Errorf("could not set cookie")
 }
