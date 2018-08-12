@@ -44,9 +44,42 @@ func TestCallback(t *testing.T) {
 	testErrorParam(assert, router)
 
 	conf = mocks.OAuth2Config{}
-	testWrongCode(assert, router, conf)
+	testCallbackWithWrongCode(assert, router)
 
-	testCorrectCode(assert, router, conf)
+	testCallbackWithCorrectCode(assert, router)
+}
+
+func TestProcessSuccessfulAuth(t *testing.T) {
+
+	assert := assert.New(t)
+
+	c := &globalmocks.GinContext{}
+
+	// Saves current function and restores it at the end.
+	old := processUserAuth
+	defer func() { processUserAuth = old }()
+
+	userMap := map[string]string{
+		"first_name": "John",
+		"last_name":  "Smith",
+		"id":         "JohnId123",
+	}
+
+	// Overwrites processUserAuth function.
+	processUserAuth = func(user []byte) (map[string]string, error) {
+		return userMap, nil
+	}
+
+	processSuccessfulAuth(c, []byte("{\"firstName\":\"John\",\"id\":\"JohnId123\",\"lastName\":\"Smith\"}"))
+
+	// Asserst that JSON was called correctly.
+	assert.True(c.JSONCall.Called)
+	assert.Equal(200, c.JSONCall.Code)
+	assert.Equal(userMap, c.JSONCall.Obj)
+
+	// Asserts the SetCookie was called correctly.
+	assert.True(c.SetCookieCall.Called)
+	assert.Equal("token", c.SetCookieCall.Name)
 }
 
 func TestGetProfile(t *testing.T) {
@@ -87,10 +120,10 @@ func TestSetCookie(t *testing.T) {
 
 	context := &globalmocks.GinContext{}
 
-	user := map[string]interface{}{
-		"id":        "JohnId123",
+	user := map[string]string{
 		"firstName": "John",
 		"lastName":  "Smith",
+		"id":        "JohnId123",
 	}
 
 	setCookie(context, user)
@@ -147,9 +180,9 @@ func testErrorParam(assert *assert.Assertions, router *gin.Engine) {
 	assert.Equal("Could not login.", w.Body.String())
 }
 
-// Test when the returned code from LinkedIn is not valid and token could not be
+// Tests when the returned code from LinkedIn is not valid and token could not be
 // generated
-func testWrongCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2Config) {
+func testCallbackWithWrongCode(assert *assert.Assertions, router *gin.Engine) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
 
@@ -163,13 +196,11 @@ func testWrongCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2Con
 	assert.Equal("Could not login.", w.Body.String())
 }
 
-// Test when the returned code from LinkedIn is valid and token could be
+// Tests when the returned code from LinkedIn is valid and token could be
 // generated
-func testCorrectCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2Config) {
+func testCallbackWithCorrectCode(assert *assert.Assertions, router *gin.Engine) {
 	// Overwrites profileRetriever
 	profileRetriever = NewProfileRetriever(getProfileMock)
-
-	settings.Development = true
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/services/login/callback", nil)
@@ -182,16 +213,31 @@ func testCorrectCode(assert *assert.Assertions, router *gin.Engine, conf OAuth2C
 	testFailedDataRetrieval(assert, router, w, req)
 }
 
-// Test when data could be retrieved from LinkedIn.
+// Tests when data could be retrieved from LinkedIn.
 func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *httptest.ResponseRecorder, req *http.Request) {
 	q := req.URL.Query()
 	q.Add("code", "correct_code_succesful_data_retrieval")
 	req.URL.RawQuery = q.Encode()
 
+	// Saves current function and restores it at the end.
+	old := processUserAuth
+	defer func() { processUserAuth = old }()
+
+	userMap := map[string]string{
+		"first_name": "John",
+		"last_name":  "Smith",
+		"id":         "JohnId123",
+	}
+
+	// Overwrites processUserAuth function.
+	processUserAuth = func(user []byte) (map[string]string, error) {
+		return userMap, nil
+	}
+
 	router.ServeHTTP(w, req)
 
 	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"firstName\":\"John\",\"id\":\"id1234\",\"lastName\":\"Smith\"}", w.Body.String())
+	assert.Equal("{\"first_name\":\"John\",\"id\":\"JohnId123\",\"last_name\":\"Smith\"}", w.Body.String())
 }
 
 // Test when data could not be retrieved from LinkedIn even if token was
@@ -242,7 +288,7 @@ func getProfileMock(client HTTPClient) ([]byte, error) {
 
 	switch mocks.GetAccessToken() {
 	case "token_enable_data_retrieval":
-		return []byte("{\"firstName\":\"John\", \"id\":\"id1234\", \"lastName\": \"Smith\"}"), nil
+		return []byte("{\"firstName\":\"John\", \"id\":\"JohnId123\", \"lastName\": \"Smith\"}"), nil
 
 	case "token_disable_data_retrieval":
 		return nil, fmt.Errorf("data could not be retrieved")

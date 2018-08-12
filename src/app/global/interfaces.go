@@ -4,6 +4,7 @@ package global
 type GinContext interface {
 	Abort()
 	Cookie(name string) (string, error)
+	JSON(code int, obj interface{})
 	Next()
 	Redirect(code int, location string)
 	Set(key string, value interface{})

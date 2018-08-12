@@ -15,6 +15,14 @@ type LinkedInConfig struct {
 	RedirectURLHost string
 }
 
+// MongoDBConfig is the structure of MongoDB settings.
+type MongoDBConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+}
+
 // Development determines if it is development environment or not.
 var Development bool
 
@@ -26,6 +34,11 @@ var JwtSecret []byte
 
 // LinkedIn holds settings for LinkedIn client.
 var LinkedIn LinkedInConfig
+
+// MongoDB holds settings for MongoDB connection
+var MongoDB MongoDBConfig
+
+// MongoPassw
 
 func init() {
 	godotenv.Load()
@@ -46,4 +59,9 @@ func initSettings() {
 	LinkedIn.ClientID = os.Getenv("LINKEDIN_CLIENT_ID")
 	LinkedIn.ClientSecret = os.Getenv("LINKEDIN_CLIENT_SECRET")
 	LinkedIn.RedirectURLHost = os.Getenv("LINKEDIN_REDIRECT_URL_HOST")
+
+	MongoDB.Host = os.Getenv("MONGO_HOST")
+	MongoDB.Port = os.Getenv("MONGO_PORT")
+	MongoDB.User = os.Getenv("MONGO_USER")
+	MongoDB.Password = os.Getenv("MONGO_PASSWORD")
 }

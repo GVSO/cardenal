@@ -24,6 +24,10 @@ func TestInitiSettings(t *testing.T) {
 				"LINKEDIN_CLIENT_ID":         "client123",
 				"LINKEDIN_CLIENT_SECRET":     "secret123",
 				"LINKEDIN_REDIRECT_URL_HOST": "http://localhost",
+				"MONGO_HOST":                 "localhost",
+				"MONGO_PORT":                 "27017",
+				"MONGO_USER":                 "mongouser",
+				"MONGO_PASSWORD":             "password123",
 			},
 		},
 	}
@@ -49,25 +53,26 @@ func TestInitiSettings(t *testing.T) {
 				return
 			}
 
-			// Assert Development value.
+			// Asserts Development value.
 			expected, _ := strconv.ParseBool(environment["DEVELOPMENT"])
 			assert.Equal(expected, Development)
 
-			// Assert Port value.
+			// Asserts Port value.
 			assert.Equal(environment["GO_PORT"], Port)
 
-			// Assert JWT secret value.
+			// Asserts JWT secret value.
 			assert.Equal(environment["JWT_SECRET"], string(JwtSecret))
 
-			// Assert LinkedIn.ClientID value.
+			// Asserts LinkedIn setting values.
 			assert.Equal(environment["LINKEDIN_CLIENT_ID"], LinkedIn.ClientID)
-
-			// Assert LinkedIn.ClientSecret value.
 			assert.Equal(environment["LINKEDIN_CLIENT_SECRET"], LinkedIn.ClientSecret)
-
-			// Assert LinkedIn.RedirectURLHost value.
 			assert.Equal(environment["LINKEDIN_REDIRECT_URL_HOST"], LinkedIn.RedirectURLHost)
 
+			// Asserts MongoDB setting values.
+			assert.Equal(environment["MONGO_HOST"], MongoDB.Host)
+			assert.Equal(environment["MONGO_PORT"], MongoDB.Port)
+			assert.Equal(environment["MONGO_USER"], MongoDB.User)
+			assert.Equal(environment["MONGO_PASSWORD"], MongoDB.Password)
 		})
 	}
 }

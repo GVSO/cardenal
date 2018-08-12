@@ -2,7 +2,6 @@ package linkedin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"github.com/gvso/cardenal/src/app/global"
 	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/settings"
+	"github.com/gvso/cardenal/src/app/user"
 	"github.com/gvso/cardenal/src/app/utils/timeutils"
 
 	"golang.org/x/oauth2"
@@ -30,6 +30,15 @@ var fields = []string{"id", "first-name", "last-name", "headline", "industry",
 var conf OAuth2Config
 
 var profileRetriever *ProfileRetriever
+
+/**
+ * Helper functions from external packages.
+ *
+ * For testing purposes, variables are declared which are defined as in external
+ * packages. The advantage of doing this is that these variables can later be
+ * overwritten for unit testing purposes.
+ */
+var processUserAuth = user.ProcessUserAuth
 
 func init() {
 	conf = getConfig().(*oauth2.Config)
@@ -49,12 +58,15 @@ func Login(c global.GinContext) {
 
 // Callback handles LinkedIn API callback.
 //
-// After user authorizes (or not), they is redirected to our site where this
+// After user authorizes (or not), user is redirected to our site where this
 // function takes care of the authentication process.
 //
 // It checks if no error parameter has been provided by LinkedIn. Then, it
-// exchange the code for a token, which is later used to get user data from
+// exchanges the code for a token, which is later used to get user data from
 // LinkedIn.
+//
+// When token and user data have been retrieved successfully, it calls
+// processSuccessfulAuth to handle the authentication/registration workflow.
 func Callback(c *gin.Context) {
 	ctx := context.Background()
 
@@ -81,8 +93,6 @@ func Callback(c *gin.Context) {
 	client := conf.Client(ctx, tok)
 
 	data, err := profileRetriever.getProfile(client)
-
-	// getData returns an error if request to API was not successful.
 	if err != nil {
 		if settings.Development {
 			log.Println(err)
@@ -94,20 +104,22 @@ func Callback(c *gin.Context) {
 		return
 	}
 
-	dataMap := make(map[string]interface{})
-	err = json.Unmarshal(data, &dataMap)
+	processSuccessfulAuth(c, data)
+}
+
+// Manages workflow when authentication and data gathering have succeded.
+//
+// It process the user data and authentication workflow. Then, it sets or
+// updates the token in cookies.
+func processSuccessfulAuth(c global.GinContext, data []byte) {
+	user, err := processUserAuth(data)
+
+	err = setCookie(c, user)
 	if err != nil {
 		panic(err)
 	}
 
-	//maputils.DumpMap("", dataMap)
-
-	err = setCookie(c, dataMap)
-	if err != nil {
-		panic(err)
-	}
-
-	c.JSON(200, dataMap)
+	c.JSON(200, user)
 }
 
 // Gets profile data from LinkedIn.
@@ -118,7 +130,6 @@ func getProfile(client HTTPClient) ([]byte, error) {
 
 	// Request data from API.
 	resp, err := client.Get(global.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
-
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +137,6 @@ func getProfile(client HTTPClient) ([]byte, error) {
 	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
-
 	if err != nil {
 		return nil, err
 	}
@@ -147,14 +157,8 @@ func getProfile(client HTTPClient) ([]byte, error) {
 //
 // It gets the user firstname, lastanme and id on LinkedIn and create a JWT
 // token which is later stored in cookie that expires in 7 days.
-func setCookie(c global.GinContext, user map[string]interface{}) error {
-	data := make(map[string]string)
-
-	data["id"] = user["id"].(string)
-	data["first_name"] = user["firstName"].(string)
-	data["last_name"] = user["lastName"].(string)
-
-	token, err := jwt.CreateToken(data)
+func setCookie(c global.GinContext, user map[string]string) error {
+	token, err := jwt.CreateToken(user)
 
 	if err != nil {
 		return err

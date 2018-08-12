@@ -11,6 +11,7 @@ type GinContext struct {
 	AbortCall     abort
 	CookieCall    cookie
 	NextCall      next
+	JSONCall      json
 	RedirectCall  redirect
 	SetCall       set
 	SetCookieCall setCookie
@@ -31,6 +32,11 @@ func (_m *GinContext) Cookie(name string) (string, error) {
 	}
 
 	return "", fmt.Errorf("No cookie with such value exists")
+}
+
+// JSON mocks a call to JSON
+func (_m *GinContext) JSON(code int, obj interface{}) {
+	_m.JSONCall = json{true, code, obj}
 }
 
 // Next mocks a call to Next
@@ -70,6 +76,11 @@ type abort struct {
 type cookie struct {
 	Called bool
 	Name   string
+}
+type json struct {
+	Called bool
+	Code   int
+	Obj    interface{}
 }
 type next struct {
 	Called bool

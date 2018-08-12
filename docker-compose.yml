@@ -9,10 +9,20 @@ services:
       dockerfile: .docker/app.dev.dockerfile
     working_dir: /go/src/github.com/gvso/cardenal
     ports:
-      - "8000:8000" # Go port
-      - "1234:1234" # Parcel port
-      - "5678:5678" # Parcel hot reload socket port
+      - 8000:8000 # Go port
+      - 1234:1234 # Parcel port
+      - 5678:5678 # Parcel hot reload socket port
     volumes:
       - .:/go/src/github.com/gvso/cardenal
     env_file:
       - .docker/env/dev.env
+    environment:
+      MONGO_HOST: db # The host on which db service is running
+    links:
+      - db
+    depends_on:
+      - db
+
+  db:
+    container_name: cardenal-db-dev
+    image: mongo:latest
