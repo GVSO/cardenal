@@ -8,7 +8,7 @@ import (
 
 // ProcessUserAuth handles user authentication/registration after user
 // has authenticated on LinkedIn.
-func ProcessUserAuth(user []byte) (map[string]string, error) {
+var ProcessUserAuth = func(user []byte) (map[string]string, error) {
 	userMap := make(map[string]interface{})
 
 	err := json.Unmarshal(user, &userMap)
@@ -21,7 +21,7 @@ func ProcessUserAuth(user []byte) (map[string]string, error) {
 	return getUserData(userMap), nil
 }
 
-func getUserData(userMap map[string]interface{}) map[string]string {
+var getUserData = func(userMap map[string]interface{}) map[string]string {
 
 	return map[string]string{
 		"id":         userMap["id"].(string),

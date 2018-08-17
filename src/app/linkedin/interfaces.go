@@ -10,7 +10,8 @@ import (
 // OAuth2Config is an interface for oauth2.Config
 type OAuth2Config interface {
 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
-	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+	Exchange(ctx context.Context, code string,
+		opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	Client(ctx context.Context, t *oauth2.Token) *http.Client
 }
 

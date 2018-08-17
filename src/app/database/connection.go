@@ -16,7 +16,7 @@ var client MongoClient
 var database MongoDatabase
 
 /**
- * Helper functions from external packages and internal functions.
+ * Helper functions from external packages.
  *
  * For testing purposes, variables are declared which are defined as pointers to
  * function. The advantage of doing this is that these variables can later be
@@ -24,18 +24,7 @@ var database MongoDatabase
  */
 var newMongoClient = mongo.NewClient
 
-var getMongoClient = func() (MongoClient, error) {
-	connection := getConnectionString()
-
-	client, err := newMongoClient(connection)
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func startConnection() error {
+var startConnection = func() error {
 
 	if !connected {
 		var err error
@@ -58,7 +47,18 @@ func startConnection() error {
 	return nil
 }
 
-func getConnectionString() string {
+var getMongoClient = func() (MongoClient, error) {
+	connection := getConnectionString()
+
+	client, err := newMongoClient(connection)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+var getConnectionString = func() string {
 	config := &settings.MongoDB
 
 	connectionString := fmt.Sprintf("mongodb://%s:%s@%s:%s", config.User, config.Password, config.Host, config.Port)

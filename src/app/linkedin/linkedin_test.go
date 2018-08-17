@@ -280,7 +280,7 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 	assert.Equal("Could not login.", w.Body.String())
 }
 
-// Test when data could not be retrieved from LinkedIn even if token was
+// Tests when data could not be retrieved from LinkedIn even if token was
 // succesfully generated.
 func testFailedDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *httptest.ResponseRecorder, req *http.Request) {
 	settings.Development = true
@@ -313,7 +313,7 @@ func isTokenValid(tokenString string) bool {
 	return false
 }
 
-// Set up router to test callback.
+// Sets up router to test callback.
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 
@@ -325,7 +325,7 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-// Mock getProfile function
+// Mocks getProfile function
 func getProfileMock(client HTTPClient) ([]byte, error) {
 
 	switch mocks.GetAccessToken() {
@@ -340,7 +340,7 @@ func getProfileMock(client HTTPClient) ([]byte, error) {
 	}
 }
 
-// Mock setCookie that returns an error.
+// Mocks setCookie that returns an error.
 func setCookieErrorMock(c global.GinContext, user map[string]string) error {
 	return fmt.Errorf("could not set cookie")
 }

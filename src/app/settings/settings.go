@@ -41,10 +41,11 @@ var MongoDB MongoDBConfig
 
 func init() {
 	godotenv.Load()
+
 	initSettings()
 }
 
-func initSettings() {
+var initSettings = func() {
 	if os.Getenv("DEVELOPMENT") == "" {
 		log.Println("Missing environment variable file.")
 
