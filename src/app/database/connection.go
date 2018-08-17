@@ -35,6 +35,7 @@ var startConnection = func() error {
 		}
 
 		err = client.Connect(context.TODO())
+
 		if err != nil {
 			return err
 		}

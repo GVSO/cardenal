@@ -14,18 +14,22 @@ type MongoClient struct {
 	DatabaseCall database
 }
 
-var i = -1
-
 // Connect mocks a call to Connect.
 func (_m *MongoClient) Connect(ctx context.Context) error {
 
-	_m.ConnectCall = connect{true, ctx}
+	times := &_m.ConnectCall.times
 
-	i++
-	// Error on first call.
-	if i == 0 {
+	if *times == 0 {
+		_m.ConnectCall = connect{0, true, ctx}
+
+		(*times)++
+
 		return fmt.Errorf("could not connect")
 	}
+
+	_m.ConnectCall = connect{*times, true, ctx}
+
+	(*times)++
 
 	// No errors in subsequent calls
 	return nil
@@ -42,6 +46,8 @@ func (_m *MongoClient) Database(name string, opts ...dbopt.Option) *mongo.Databa
 ** Defines structs to check if functions were called with expected parameters **
 *******************************************************************************/
 type connect struct {
+	times int
+
 	Called bool
 	Ctx    context.Context
 }

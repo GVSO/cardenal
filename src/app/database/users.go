@@ -2,30 +2,26 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
-
-	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
-var collection *mongo.Collection
+var collection MongoCollection
 
 // InsertUser inserts a new user.
-func InsertUser(user map[string]interface{}) {
+var InsertUser = func(user map[string]interface{}) (interface{}, error) {
 
 	collection = getCollection()
 
 	res, err := collection.InsertOne(context.Background(), user)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	id := res.InsertedID
 
-	fmt.Println(id)
+	return id, nil
 }
 
-func getCollection() *mongo.Collection {
+var getCollection = func() MongoCollection {
 	startConnection()
 
 	return database.Collection("users")

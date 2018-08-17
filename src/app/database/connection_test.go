@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gvso/cardenal/src/app/database/mocks"
@@ -53,14 +54,52 @@ func TestStartConnection(t *testing.T) {
 	defer func() { getMongoClient = old }()
 
 	// Overwrites getMongoClient function.
+	var i = 0
+	var mongoClient *mocks.MongoClient
+
 	getMongoClient = func() (MongoClient, error) {
-		return &mocks.MongoClient{}, nil
+		if i == 0 {
+			mongoClient = &mocks.MongoClient{}
+		}
+
+		i++
+
+		return mongoClient, nil
 	}
 
-	//testFailedGetClientCall(assert)
+	testFailedGetClientCall(assert)
 	testFailedConnection(assert)
 	testSuccessfulConnection(assert)
 	testAlreadyConnected(assert)
+}
+
+func TestGetMongoClient(t *testing.T) {
+
+	assert := assert.New(t)
+
+	// Saves current function and restores it at the end.
+	old := newMongoClient
+	defer func() { newMongoClient = old }()
+
+	// Overwrites newMongoClient function.
+	newMongoClient = func(uri string) (*mongo.Client, error) {
+		return &mongo.Client{}, nil
+	}
+
+	client, err := getMongoClient()
+
+	assert.Equal(&mongo.Client{}, client)
+	assert.Nil(err)
+
+	// Overwrites newMongoClient function.
+	newMongoClient = func(uri string) (*mongo.Client, error) {
+		return nil, fmt.Errorf("could not established connection")
+	}
+
+	client, err = getMongoClient()
+
+	assert.Nil(client)
+	assert.Equal("could not established connection", err.Error())
 }
 
 // Tests startConnection when getClient fails.

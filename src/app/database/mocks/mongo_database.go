@@ -22,6 +22,6 @@ func (_m *MongoDatabase) Collection(name string, opts ...collectionopt.Option) *
 *******************************************************************************/
 type collection struct {
 	Called bool
-	name   string
-	opts   []collectionopt.Option
+	Name   string
+	Opts   []collectionopt.Option
 }
