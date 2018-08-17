@@ -82,6 +82,24 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	assert.True(c.SetCookieCall.Called)
 	assert.Equal("token", c.SetCookieCall.Name)
 
+	/////////////////////////////////////////////////
+	// Tests when processUserAuth returns an error.//
+	/////////////////////////////////////////////////
+	oldProcessUserAuth := processUserAuth
+
+	// Overwrites setCookie function.
+	processUserAuth = func(user []byte) (map[string]string, error) {
+		return nil, fmt.Errorf("error when processing user")
+	}
+
+	user, err = processSuccessfulAuth(c, arg)
+
+	// Asserts the returning values of the function.
+	assert.Nil(user)
+	assert.Equal("error when processing user", err.Error())
+
+	processUserAuth = oldProcessUserAuth
+
 	//////////////////////////////////////////
 	// Tests when setCokie returns an error.//
 	//////////////////////////////////////////
@@ -90,7 +108,7 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 
 	// Overwrites setCookie function.
 	setCookie = setCookieErrorMock
-
+	fmt.Println("here")
 	user, err = processSuccessfulAuth(c, arg)
 
 	// Asserts the returning values of the function.
@@ -142,9 +160,10 @@ func TestSetCookie(t *testing.T) {
 		"id":        "JohnId123",
 	}
 
-	setCookie(context, user)
+	err := setCookie(context, user)
 
-	// Assert that function was called with correct arguments.
+	// Asserts that function was called with correct arguments.
+	assert.Nil(err)
 	assert.True(context.SetCookieCall.Called)
 	assert.Equal("token", context.SetCookieCall.Name)
 	assert.True(isTokenValid(context.SetCookieCall.Value))
@@ -153,10 +172,25 @@ func TestSetCookie(t *testing.T) {
 	assert.Equal("/", context.SetCookieCall.Path)
 	assert.False(context.SetCookieCall.Secure)
 	assert.True(context.SetCookieCall.HTTPOnly)
+
+	// Tests when createToken returns an error
+
+	// Saves current function and restores it at the end.
+	old := createToken
+	defer func() { createToken = old }()
+
+	// Overwrites createToken function.
+	createToken = func(user map[string]string) (string, error) {
+		return "", fmt.Errorf("could not create token")
+	}
+
+	err = setCookie(context, user)
+
+	assert.Equal("could not create token", err.Error())
 }
 func TestGetConfig(t *testing.T) {
 
-	// Override settings' values.
+	// Overrides settings' values.
 	settings.LinkedIn = settings.LinkedInConfig{
 		ClientID:        "client123",
 		ClientSecret:    "secret123",
@@ -178,7 +212,7 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(linkedin.Endpoint, config.Endpoint, "endpoint is not correct")
 }
 
-// Test when LinkedIn returns the 'error' parameter.
+// Tests when LinkedIn returns the 'error' parameter.
 //
 // For instance, when user denied authorization, LinkedIn returns an error
 // parameter, so user shouldn't be logged in in this case.

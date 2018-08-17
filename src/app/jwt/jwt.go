@@ -10,7 +10,7 @@ import (
 )
 
 // CreateToken returns a JWT token.
-func CreateToken(user map[string]string) (string, error) {
+var CreateToken = func(user map[string]string) (string, error) {
 
 	ttl := time.Duration(timeutils.GetSeconds(7)) * time.Second
 

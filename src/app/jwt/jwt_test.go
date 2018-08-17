@@ -26,7 +26,7 @@ func TestCreateToken(t *testing.T) {
 	assert.True(isTokenValid(token))
 }
 
-func TestValidate(t *testing.T) {
+func TestValidateHelper(t *testing.T) {
 
 	assert := assert.New(t)
 
@@ -76,6 +76,8 @@ func testValidateHelperWithValidToken(c *globalmocks.GinContext, assert *assert.
 
 // Test case for when a invalid token was provided in cookie.
 func testValidateHelperWithInvalidToken(c *globalmocks.GinContext, assert *assert.Assertions) {
+	settings.Development = true
+
 	tokenString := generateToken(false)
 	c.SetCookie("token", tokenString, 10, "", "", false, true)
 

@@ -13,19 +13,28 @@ var ProcessUserAuth = func(user []byte) (map[string]string, error) {
 
 	err := json.Unmarshal(user, &userMap)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	database.InsertUser(userMap)
+	userMap = parseUserData(userMap)
 
-	return getUserData(userMap), nil
-}
-
-var getUserData = func(userMap map[string]interface{}) map[string]string {
+	_, err = database.InsertUser(userMap)
+	if err != nil {
+		return nil, err
+	}
 
 	return map[string]string{
 		"id":         userMap["id"].(string),
-		"first_name": userMap["firstName"].(string),
-		"last_name":  userMap["lastName"].(string),
+		"first_name": userMap["first_name"].(string),
+		"last_name":  userMap["last_name"].(string),
+	}, nil
+}
+
+var parseUserData = func(userMap map[string]interface{}) map[string]interface{} {
+
+	return map[string]interface{}{
+		"id":         userMap["id"],
+		"first_name": userMap["firstName"],
+		"last_name":  userMap["lastName"],
 	}
 }

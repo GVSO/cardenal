@@ -37,6 +37,7 @@ var conf OAuth2Config
  * overwritten in the testing files.
  */
 var processUserAuth = user.ProcessUserAuth
+var createToken = jwt.CreateToken
 
 func init() {
 	conf = getConfig().(*oauth2.Config)
@@ -163,7 +164,7 @@ var getProfile = func(client HTTPClient) ([]byte, error) {
 // It gets the user firstname, lastanme and id on LinkedIn and create a JWT
 // token which is later stored in cookie that expires in 7 days.
 var setCookie = func(c global.GinContext, user map[string]string) error {
-	token, err := jwt.CreateToken(user)
+	token, err := createToken(user)
 
 	if err != nil {
 		return err
@@ -180,6 +181,9 @@ var setCookie = func(c global.GinContext, user map[string]string) error {
 // updates the token in cookies.
 var processSuccessfulAuth = func(c global.GinContext, data []byte) (map[string]string, error) {
 	user, err := processUserAuth(data)
+	if err != nil {
+		return nil, err
+	}
 
 	err = setCookie(c, user)
 	if err != nil {

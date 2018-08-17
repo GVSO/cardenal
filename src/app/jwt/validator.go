@@ -13,12 +13,12 @@ import (
 var key []byte
 
 // Validate checks that JWT token is valid.
-func Validate(c *gin.Context) {
+var Validate = func(c *gin.Context) {
 	validateHelper(c)
 }
 
 // Helper function for Validate function.
-func validateHelper(c global.GinContext) {
+var validateHelper = func(c global.GinContext) {
 
 	authorizationValue, err := c.Cookie("token")
 
@@ -54,7 +54,7 @@ func validateHelper(c global.GinContext) {
 }
 
 // KeyFunction returns the encoding secret key.
-func KeyFunction(token *jwt.Token) (interface{}, error) {
+var KeyFunction = func(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("There was an error")
 	}
