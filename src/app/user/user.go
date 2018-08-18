@@ -6,19 +6,29 @@ import (
 	"github.com/gvso/cardenal/src/app/database"
 )
 
+/**
+ * Helper functions from external packages.
+ *
+ * For testing purposes, variables are declared which are defined as pointers to
+ * function. The advantage of doing this is that these variables can later be
+ * overwritten in the testing files.
+ */
+var insertUser = database.InsertUser
+var jsonUnmarshal = json.Unmarshal
+
 // ProcessUserAuth handles user authentication/registration after user
 // has authenticated on LinkedIn.
 var ProcessUserAuth = func(user []byte) (map[string]string, error) {
 	userMap := make(map[string]interface{})
 
-	err := json.Unmarshal(user, &userMap)
+	err := jsonUnmarshal(user, &userMap)
 	if err != nil {
 		return nil, err
 	}
 
 	userMap = parseUserData(userMap)
 
-	_, err = database.InsertUser(userMap)
+	_, err = insertUser(userMap)
 	if err != nil {
 		return nil, err
 	}
