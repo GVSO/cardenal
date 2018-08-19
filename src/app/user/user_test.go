@@ -5,29 +5,30 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gvso/cardenal/src/app/database/entity"
+
 	"github.com/mongodb/mongo-go-driver/mongo"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var userMap = map[string]interface{}{
-	"id":         "id123",
-	"firstName":  "John",
-	"lastName":   "Smith",
-	"extraField": "extra field",
+var user = entity.User{
+	LinkedInID: "linkedin_id123",
+	FirstName:  "John",
+	LastName:   "Smith",
 }
 
 func TestProcessUserAuth(t *testing.T) {
 
 	assert := assert.New(t)
 
-	user, _ := json.Marshal(userMap)
+	data, _ := json.Marshal(user)
 
 	// Saves current function and restores it at the end.
 	old := insertUser
 	defer func() { insertUser = old }()
 
-	insertUser = func(user map[string]interface{}) (interface{}, error) {
+	insertUser = func(user *entity.User) (interface{}, error) {
 		result := mongo.InsertOneResult{
 			InsertedID: "document123",
 		}
@@ -35,23 +36,23 @@ func TestProcessUserAuth(t *testing.T) {
 		return result, nil
 	}
 
-	userMap, err := ProcessUserAuth(user)
+	userMap, err := ProcessUserAuth(data)
 
 	expected := map[string]string{
-		"id":         "id123",
-		"first_name": "John",
-		"last_name":  "Smith",
+		"linkedin_id": "linkedin_id123",
+		"first_name":  "John",
+		"last_name":   "Smith",
 	}
 
 	assert.Nil(err)
 	assert.Equal(expected, userMap)
 
 	// Tests when insertUser returns an error.
-	insertUser = func(user map[string]interface{}) (interface{}, error) {
+	insertUser = func(user *entity.User) (interface{}, error) {
 		return nil, fmt.Errorf("document could not be inserted")
 	}
 
-	userMap, err = ProcessUserAuth(user)
+	userMap, err = ProcessUserAuth(data)
 
 	assert.Nil(userMap)
 	assert.Equal("document could not be inserted", err.Error())
@@ -66,23 +67,8 @@ func TestProcessUserAuth(t *testing.T) {
 		return fmt.Errorf("could not unmarsh user")
 	}
 
-	userMap, err = ProcessUserAuth(user)
+	userMap, err = ProcessUserAuth(data)
 
 	assert.Nil(userMap)
 	assert.Equal("could not unmarsh user", err.Error())
-}
-
-func TestParseUserData(t *testing.T) {
-
-	assert := assert.New(t)
-
-	user := parseUserData(userMap)
-
-	expected := map[string]interface{}{
-		"id":         "id123",
-		"first_name": "John",
-		"last_name":  "Smith",
-	}
-
-	assert.Equal(expected, user)
 }

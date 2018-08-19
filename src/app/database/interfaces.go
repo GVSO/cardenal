@@ -6,6 +6,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/collectionopt"
 	"github.com/mongodb/mongo-go-driver/mongo/dbopt"
+	"github.com/mongodb/mongo-go-driver/mongo/findopt"
 	"github.com/mongodb/mongo-go-driver/mongo/insertopt"
 )
 
@@ -24,4 +25,6 @@ type MongoDatabase interface {
 type MongoCollection interface {
 	InsertOne(ctx context.Context, document interface{},
 		opts ...insertopt.One) (*mongo.InsertOneResult, error)
+	FindOne(ctx context.Context, filter interface{},
+		opts ...findopt.One) *mongo.DocumentResult
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gvso/cardenal/src/app/database"
+	"github.com/gvso/cardenal/src/app/database/entity"
 )
 
 /**
@@ -18,33 +19,22 @@ var jsonUnmarshal = json.Unmarshal
 
 // ProcessUserAuth handles user authentication/registration after user
 // has authenticated on LinkedIn.
-var ProcessUserAuth = func(user []byte) (map[string]string, error) {
-	userMap := make(map[string]interface{})
+var ProcessUserAuth = func(data []byte) (map[string]string, error) {
+	var user entity.User
 
-	err := jsonUnmarshal(user, &userMap)
+	err := jsonUnmarshal(data, &user)
 	if err != nil {
 		return nil, err
 	}
 
-	userMap = parseUserData(userMap)
-
-	_, err = insertUser(userMap)
+	_, err = insertUser(&user)
 	if err != nil {
 		return nil, err
 	}
 
 	return map[string]string{
-		"id":         userMap["id"].(string),
-		"first_name": userMap["first_name"].(string),
-		"last_name":  userMap["last_name"].(string),
+		"linkedin_id": user.LinkedInID,
+		"first_name":  user.FirstName,
+		"last_name":   user.LastName,
 	}, nil
-}
-
-var parseUserData = func(userMap map[string]interface{}) map[string]interface{} {
-
-	return map[string]interface{}{
-		"id":         userMap["id"],
-		"first_name": userMap["firstName"],
-		"last_name":  userMap["lastName"],
-	}
 }

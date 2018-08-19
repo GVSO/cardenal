@@ -60,9 +60,9 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	defer func() { processUserAuth = old }()
 
 	userMap := map[string]string{
-		"first_name": "John",
-		"last_name":  "Smith",
-		"id":         "JohnId123",
+		"first_name":  "John",
+		"last_name":   "Smith",
+		"linkedin_id": "linkedin_id123",
 	}
 
 	// Overwrites processUserAuth function.
@@ -70,7 +70,7 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 		return userMap, nil
 	}
 
-	arg := []byte("{\"firstName\":\"John\",\"id\":\"JohnId123\",\"lastName\":\"Smith\"}")
+	arg := []byte("{\"firstName\":\"John\",\"id\":\"linkedin_id123\",\"lastName\":\"Smith\"}")
 
 	user, err := processSuccessfulAuth(c, arg)
 
@@ -108,7 +108,7 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 
 	// Overwrites setCookie function.
 	setCookie = setCookieErrorMock
-	fmt.Println("here")
+
 	user, err = processSuccessfulAuth(c, arg)
 
 	// Asserts the returning values of the function.

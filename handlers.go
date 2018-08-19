@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gvso/cardenal/src/app/database"
 
 	"github.com/gvso/cardenal/src/app/linkedin"
 )
@@ -17,5 +18,5 @@ func callbackHandler(c *gin.Context) {
 func userHandler(c *gin.Context) {
 	c.String(200, "success")
 
-	//database.GetUser()
+	database.GetUserByLinkedInID("MrZtdNnOwu")
 }

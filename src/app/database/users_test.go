@@ -1,16 +1,19 @@
 package database
 
 import (
-	"context"
 	"testing"
+
+	"github.com/gvso/cardenal/src/app/database/entity"
 
 	"github.com/gvso/cardenal/src/app/database/mocks"
 	"github.com/mongodb/mongo-go-driver/mongo/collectionopt"
 	"github.com/stretchr/testify/assert"
 )
 
-var testUser = map[string]interface{}{
-	"username": "username123",
+var testUser = entity.User{
+	LinkedInID: "linkedin_id123",
+	FirstName:  "John",
+	LastName:   "Smith",
 }
 
 func TestInsertUser(t *testing.T) {
@@ -35,7 +38,7 @@ func TestInsertUser(t *testing.T) {
 		return mongoCollection
 	}
 
-	id, err := InsertUser(testUser)
+	id, err := InsertUser(&testUser)
 
 	assert.Nil(err)
 	assert.Equal("id123", id)
@@ -43,12 +46,15 @@ func TestInsertUser(t *testing.T) {
 	collection := collection.(*mocks.MongoCollection)
 
 	assert.True(collection.InsertOneCall.Called)
-	assert.Equal(context.Background(), collection.InsertOneCall.Ctx)
+	assert.Equal(&testUser, collection.InsertOneCall.Document)
 
 	// This time, call to InsertOne returns an error
-	id, err = InsertUser(testUser)
+	id, err = InsertUser(&testUser)
 	assert.Nil(id)
 	assert.Equal("could not insert document", err.Error())
+}
+
+func TestGetUserByLinkedInID(t *testing.T) {
 }
 
 func TestGetCollection(t *testing.T) {

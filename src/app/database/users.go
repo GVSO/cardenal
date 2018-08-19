@@ -2,16 +2,24 @@ package database
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/gvso/cardenal/src/app/database/entity"
+	"github.com/mongodb/mongo-go-driver/bson"
+	"github.com/mongodb/mongo-go-driver/bson/objectid"
 )
 
 var collection MongoCollection
 
 // InsertUser inserts a new user.
-var InsertUser = func(user map[string]interface{}) (interface{}, error) {
+var InsertUser = func(user *entity.User) (interface{}, error) {
 
 	collection = getCollection()
 
-	res, err := collection.InsertOne(context.Background(), user)
+	// Sets the _id field value.
+	user.ID = objectid.New()
+
+	res, err := collection.InsertOne(nil, user)
 	if err != nil {
 		return nil, err
 	}
@@ -19,6 +27,25 @@ var InsertUser = func(user map[string]interface{}) (interface{}, error) {
 	id := res.InsertedID
 
 	return id, nil
+}
+
+// GetUserByLinkedInID returns the document containing the user with the
+// provided ID.
+var GetUserByLinkedInID = func(id string, fields ...string) entity.User {
+
+	collection = getCollection()
+
+	user := entity.User{}
+	filter := bson.NewDocument(bson.EC.String("linkedin_id", id))
+	err := collection.FindOne(context.Background(), filter).Decode(&user)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	fmt.Println(user)
+
+	return user
 }
 
 var getCollection = func() MongoCollection {

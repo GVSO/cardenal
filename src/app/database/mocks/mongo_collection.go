@@ -2,15 +2,35 @@ package mocks
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/findopt"
 	"github.com/mongodb/mongo-go-driver/mongo/insertopt"
 )
 
 // MongoCollection is the mock structure for database.MongoCollection
 type MongoCollection struct {
+	FindOneCall   findOne
 	InsertOneCall insertOne
+}
+
+// FindOne mocks a call to FindOne.
+func (_m *MongoCollection) FindOne(ctx context.Context, filter interface{},
+	opts ...findopt.One) *mongo.DocumentResult {
+
+	times := &_m.FindOneCall.times
+
+	// Error on second call
+	if *times == 1 {
+		(*times)++
+
+		_m.FindOneCall = findOne{*times, true, ctx, filter, opts}
+
+		return &mongo.DocumentResult{}
+	}
+
+	return &mongo.DocumentResult{}
 }
 
 // InsertOne mocks a call to InsertOne.
@@ -25,7 +45,7 @@ func (_m *MongoCollection) InsertOne(ctx context.Context, document interface{},
 
 		_m.InsertOneCall = insertOne{*times, true, ctx, document, opts}
 
-		return nil, fmt.Errorf("could not insert document")
+		return nil, errors.New("could not insert document")
 	}
 
 	(*times)++
@@ -38,6 +58,14 @@ func (_m *MongoCollection) InsertOne(ctx context.Context, document interface{},
 /*******************************************************************************
 ** Defines structs to check if functions were called with expected parameters **
 *******************************************************************************/
+type findOne struct {
+	times int
+
+	Callled bool
+	Ctx     context.Context
+	filter  interface{}
+	opts    []findopt.One
+}
 type insertOne struct {
 	times int
 
