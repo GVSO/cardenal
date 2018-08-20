@@ -6,6 +6,7 @@ import (
 	"github.com/gvso/cardenal/src/app/database/entity"
 
 	"github.com/gvso/cardenal/src/app/database/mocks"
+	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo/collectionopt"
 	"github.com/stretchr/testify/assert"
 )
@@ -55,6 +56,71 @@ func TestInsertUser(t *testing.T) {
 }
 
 func TestGetUserByLinkedInID(t *testing.T) {
+
+	assert := assert.New(t)
+
+	// Saves current function and restores it at the end.
+	old := getCollection
+	defer func() { getCollection = old }()
+
+	// Overwrites getCollection function.
+	getCollection = func() MongoCollection {
+		return &mocks.MongoCollection{}
+	}
+
+	// Saves current function and restores it at the end.
+	oldFindOne := findOne
+	defer func() { findOne = oldFindOne }()
+
+	var filter *bson.Document
+	dr := &mocks.DocumentResult{}
+
+	// Overwrites findOne function.
+	findOne = func(filterArg *bson.Document) DocumentResult {
+		filter = filterArg
+		return dr
+	}
+
+	user, err := GetUserByLinkedInID("linkedin_id123")
+
+	// Asserts the value of the filter.
+	assert.Equal("linkedin_id", filter.ElementAt(0).Key())
+	assert.Equal("linkedin_id123", filter.ElementAt(0).Value().StringValue())
+
+	assert.True(dr.DecodeCall.Called)
+	assert.Equal(entity.User{}, dr.DecodeCall.Value)
+
+	expected := entity.User{
+		LinkedInID: "linkedin_id123",
+		FirstName:  "John",
+		LastName:   "Smith",
+	}
+
+	assert.Nil(err)
+	assert.Equal(expected, *user)
+
+	// mocks.DocumentResult.Decode() returns an error the second time
+	user, err = GetUserByLinkedInID("linkedin_id123")
+
+	assert.Nil(user)
+	assert.Equal("could not decode document", err.Error())
+}
+
+func TestFindOne(t *testing.T) {
+
+	assert := assert.New(t)
+
+	// Overwrites collection value.
+	collection = &mocks.MongoCollection{}
+
+	filter := bson.NewDocument(bson.EC.String("linkedin_id", "linkedin_id123"))
+
+	findOne(filter)
+
+	collection := collection.(*mocks.MongoCollection)
+
+	assert.True(collection.FindOneCall.Callled)
+	assert.Equal(filter, collection.FindOneCall.Filter)
 }
 
 func TestGetCollection(t *testing.T) {

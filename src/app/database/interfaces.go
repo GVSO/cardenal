@@ -10,6 +10,11 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo/insertopt"
 )
 
+// DocumentResult is an interface for mongo.DocumentResult
+type DocumentResult interface {
+	Decode(v interface{}) error
+}
+
 // MongoClient is an interface for mongo.Client
 type MongoClient interface {
 	Connect(ctx context.Context) error

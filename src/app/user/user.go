@@ -14,22 +14,30 @@ import (
  * function. The advantage of doing this is that these variables can later be
  * overwritten in the testing files.
  */
+var getUserByLinkedInID = database.GetUserByLinkedInID
 var insertUser = database.InsertUser
 var jsonUnmarshal = json.Unmarshal
 
 // ProcessUserAuth handles user authentication/registration after user
 // has authenticated on LinkedIn.
 var ProcessUserAuth = func(data []byte) (map[string]string, error) {
-	var user entity.User
+	user := &entity.User{}
 
-	err := jsonUnmarshal(data, &user)
+	err := jsonUnmarshal(data, user)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = insertUser(&user)
-	if err != nil {
-		return nil, err
+	exists, _ := getUserByLinkedInID(user.LinkedInID)
+
+	// If user was not found, creates new user.
+	if exists == nil {
+
+		_, err = insertUser(user)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return map[string]string{
@@ -37,4 +45,5 @@ var ProcessUserAuth = func(data []byte) (map[string]string, error) {
 		"first_name":  user.FirstName,
 		"last_name":   user.LastName,
 	}, nil
+
 }

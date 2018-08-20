@@ -17,7 +17,7 @@ var InsertUser = func(user *entity.User) (interface{}, error) {
 	collection = getCollection()
 
 	// Sets the _id field value.
-	user.ID = objectid.New()
+	(*user).ID = objectid.New()
 
 	res, err := collection.InsertOne(nil, user)
 	if err != nil {
@@ -31,21 +31,25 @@ var InsertUser = func(user *entity.User) (interface{}, error) {
 
 // GetUserByLinkedInID returns the document containing the user with the
 // provided ID.
-var GetUserByLinkedInID = func(id string, fields ...string) entity.User {
+var GetUserByLinkedInID = func(id string,
+	fields ...string) (*entity.User, error) {
 
 	collection = getCollection()
 
 	user := entity.User{}
 	filter := bson.NewDocument(bson.EC.String("linkedin_id", id))
-	err := collection.FindOne(context.Background(), filter).Decode(&user)
 
+	err := findOne(filter).Decode(&user)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
+		return nil, err
 	}
 
-	fmt.Println(user)
+	return &user, nil
+}
 
-	return user
+var findOne = func(filter *bson.Document) DocumentResult {
+	return collection.FindOne(context.Background(), filter)
 }
 
 var getCollection = func() MongoCollection {

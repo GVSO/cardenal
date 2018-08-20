@@ -19,18 +19,9 @@ type MongoCollection struct {
 func (_m *MongoCollection) FindOne(ctx context.Context, filter interface{},
 	opts ...findopt.One) *mongo.DocumentResult {
 
-	times := &_m.FindOneCall.times
+	_m.FindOneCall = findOne{true, ctx, filter, opts}
 
-	// Error on second call
-	if *times == 1 {
-		(*times)++
-
-		_m.FindOneCall = findOne{*times, true, ctx, filter, opts}
-
-		return &mongo.DocumentResult{}
-	}
-
-	return &mongo.DocumentResult{}
+	return nil
 }
 
 // InsertOne mocks a call to InsertOne.
@@ -59,12 +50,10 @@ func (_m *MongoCollection) InsertOne(ctx context.Context, document interface{},
 ** Defines structs to check if functions were called with expected parameters **
 *******************************************************************************/
 type findOne struct {
-	times int
-
 	Callled bool
 	Ctx     context.Context
-	filter  interface{}
-	opts    []findopt.One
+	Filter  interface{}
+	Opts    []findopt.One
 }
 type insertOne struct {
 	times int

@@ -2,13 +2,13 @@ package mocks
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/dbopt"
 )
 
-// MongoClient is the mock structure for database.MongoClient
+// MongoClient is the mock structure for database.MongoClient.
 type MongoClient struct {
 	ConnectCall  connect
 	DatabaseCall database
@@ -19,19 +19,20 @@ func (_m *MongoClient) Connect(ctx context.Context) error {
 
 	times := &_m.ConnectCall.times
 
+	// Error on first call.
 	if *times == 0 {
 		_m.ConnectCall = connect{0, true, ctx}
 
 		(*times)++
 
-		return fmt.Errorf("could not connect")
+		return errors.New("could not connect")
 	}
 
 	_m.ConnectCall = connect{*times, true, ctx}
 
 	(*times)++
 
-	// No errors in subsequent calls
+	// No errors in subsequent calls.
 	return nil
 }
 
