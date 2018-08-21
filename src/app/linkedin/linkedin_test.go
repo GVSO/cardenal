@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	jwtlibrary "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -66,13 +67,21 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	}
 
 	// Overwrites processUserAuth function.
-	processUserAuth = func(user []byte) (map[string]string, error) {
+	processUserAuth = func(user []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
+
+		assert.NotNil(user)
+		assert.NotNil(linkedinToken)
+
 		return userMap, nil
 	}
 
 	arg := []byte("{\"firstName\":\"John\",\"id\":\"linkedin_id123\",\"lastName\":\"Smith\"}")
+	linkedinToken := &oauth2.Token{
+		AccessToken: "token123",
+		Expiry:      time.Now().Add(60 * 24 * time.Hour),
+	}
 
-	user, err := processSuccessfulAuth(c, arg)
+	user, err := processSuccessfulAuth(c, arg, linkedinToken)
 
 	// Asserts the returning values of the function.
 	assert.Nil(err)
@@ -88,11 +97,11 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	oldProcessUserAuth := processUserAuth
 
 	// Overwrites setCookie function.
-	processUserAuth = func(user []byte) (map[string]string, error) {
+	processUserAuth = func(user []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
 		return nil, fmt.Errorf("error when processing user")
 	}
 
-	user, err = processSuccessfulAuth(c, arg)
+	user, err = processSuccessfulAuth(c, arg, linkedinToken)
 
 	// Asserts the returning values of the function.
 	assert.Nil(user)
@@ -109,7 +118,7 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	// Overwrites setCookie function.
 	setCookie = setCookieErrorMock
 
-	user, err = processSuccessfulAuth(c, arg)
+	user, err = processSuccessfulAuth(c, arg, linkedinToken)
 
 	// Asserts the returning values of the function.
 	assert.Nil(user)
@@ -284,7 +293,11 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 	}
 
 	// Overwrites processUserAuth function.
-	processUserAuth = func(user []byte) (map[string]string, error) {
+	processUserAuth = func(user []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
+
+		assert.NotNil(user)
+		assert.NotNil(linkedinToken)
+
 		return userMap, nil
 	}
 
@@ -302,7 +315,7 @@ func testSuccessfulDataRetrieval(assert *assert.Assertions, router *gin.Engine, 
 	defer func() { processSuccessfulAuth = oldProcessSuccessfulAuth }()
 
 	// Overwrites processUserAuth function.
-	processSuccessfulAuth = func(c global.GinContext, data []byte) (map[string]string, error) {
+	processSuccessfulAuth = func(c global.GinContext, data []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
 		return nil, fmt.Errorf("could not set cookie")
 	}
 

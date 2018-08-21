@@ -3,6 +3,8 @@ package user
 import (
 	"encoding/json"
 
+	"golang.org/x/oauth2"
+
 	"github.com/gvso/cardenal/src/app/database"
 	"github.com/gvso/cardenal/src/app/database/entity"
 )
@@ -20,7 +22,9 @@ var jsonUnmarshal = json.Unmarshal
 
 // ProcessUserAuth handles user authentication/registration after user
 // has authenticated on LinkedIn.
-var ProcessUserAuth = func(data []byte) (map[string]string, error) {
+var ProcessUserAuth = func(data []byte,
+	linkedinToken *oauth2.Token) (map[string]string, error) {
+
 	user := &entity.User{}
 
 	err := jsonUnmarshal(data, user)
@@ -32,6 +36,8 @@ var ProcessUserAuth = func(data []byte) (map[string]string, error) {
 
 	// If user was not found, creates new user.
 	if exists == nil {
+
+		user.LinkedInToken = *linkedinToken
 
 		_, err = insertUser(user)
 		if err != nil {

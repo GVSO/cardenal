@@ -74,6 +74,7 @@ var Callback = func(c *gin.Context) {
 		return
 	}
 
+	// Gets token from LinkedIn.
 	code := c.Query("code")
 
 	tok, err := conf.Exchange(ctx, code)
@@ -83,6 +84,7 @@ var Callback = func(c *gin.Context) {
 		return
 	}
 
+	// Gets user information from LinkedIn.
 	client := conf.Client(ctx, tok)
 
 	data, err := getProfile(client)
@@ -92,7 +94,8 @@ var Callback = func(c *gin.Context) {
 		return
 	}
 
-	userMap, err := processSuccessfulAuth(c, data)
+	// Processes user authentication.
+	userMap, err := processSuccessfulAuth(c, data, tok)
 	if err != nil {
 		processBadRequest(c, err)
 
@@ -179,8 +182,10 @@ var setCookie = func(c global.GinContext, user map[string]string) error {
 //
 // It process the user data and authentication workflow. Then, it sets or
 // updates the token in cookies.
-var processSuccessfulAuth = func(c global.GinContext, data []byte) (map[string]string, error) {
-	user, err := processUserAuth(data)
+var processSuccessfulAuth = func(c global.GinContext,
+	data []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
+
+	user, err := processUserAuth(data, linkedinToken)
 	if err != nil {
 		return nil, err
 	}

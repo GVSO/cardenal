@@ -5,18 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/gvso/cardenal/src/app/database/entity"
+	"golang.org/x/oauth2"
 
 	"github.com/mongodb/mongo-go-driver/mongo"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gvso/cardenal/src/app/database/entity"
 )
 
+var linkedinToken = &oauth2.Token{
+	AccessToken: "token123",
+	Expiry:      time.Now().Add(60 * 24 * time.Hour),
+}
+
 var user = entity.User{
-	LinkedInID: "linkedin_id123",
-	FirstName:  "John",
-	LastName:   "Smith",
+	LinkedInID:    "linkedin_id123",
+	FirstName:     "John",
+	LastName:      "Smith",
+	LinkedInToken: *linkedinToken,
 }
 
 func TestProcessUserAuth(t *testing.T) {
@@ -43,7 +51,7 @@ func TestProcessUserAuth(t *testing.T) {
 		return nil, fmt.Errorf("document could not be inserted")
 	}
 
-	userMap, err := ProcessUserAuth(data)
+	userMap, err := ProcessUserAuth(data, linkedinToken)
 
 	assert.Nil(userMap)
 	assert.Equal("document could not be inserted", err.Error())
@@ -60,7 +68,7 @@ func TestProcessUserAuth(t *testing.T) {
 		return fmt.Errorf("could not unmarsh user")
 	}
 
-	userMap, err = ProcessUserAuth(data)
+	userMap, err = ProcessUserAuth(data, linkedinToken)
 
 	assert.Nil(userMap)
 	assert.Equal("could not unmarsh user", err.Error())
@@ -80,21 +88,16 @@ func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 		return nil, errors.New("document does not exist")
 	}
 
-	data, _ := json.Marshal(user)
-
 	// Saves current function and restores it at the end.
 	old := insertUser
 	defer func() { insertUser = old }()
 
 	insertUserCalled := false
 
-	insertUser = func(user *entity.User) (interface{}, error) {
-
-		expected := &entity.User{}
-		json.Unmarshal(data, expected)
+	insertUser = func(userArg *entity.User) (interface{}, error) {
 
 		// Asserts that function is called with correct argument.
-		assert.Equal(expected, user)
+		assert.Equal(&user, userArg)
 
 		result := mongo.InsertOneResult{
 			InsertedID: "document123",
@@ -105,7 +108,9 @@ func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 		return result, nil
 	}
 
-	userMap, err := ProcessUserAuth(data)
+	data, _ := json.Marshal(user)
+
+	userMap, err := ProcessUserAuth(data, linkedinToken)
 
 	expected := map[string]string{
 		"linkedin_id": "linkedin_id123",
@@ -144,7 +149,7 @@ func testProcessUserAuthExistingUser(assert *assert.Assertions) {
 
 	data, _ := json.Marshal(user)
 
-	userMap, err := ProcessUserAuth(data)
+	userMap, err := ProcessUserAuth(data, linkedinToken)
 
 	expected := map[string]string{
 		"linkedin_id": "linkedin_id123",
