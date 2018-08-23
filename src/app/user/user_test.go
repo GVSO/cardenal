@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gvso/cardenal/src/app/database/entity"
+	entity "github.com/gvso/cardenal/src/app/db/entity/user"
 )
 
 var linkedinToken = &oauth2.Token{
@@ -25,6 +24,7 @@ var user = entity.User{
 	FirstName:     "John",
 	LastName:      "Smith",
 	LinkedInToken: *linkedinToken,
+	AccessToken:   "access_token123",
 }
 
 func TestProcessUserAuth(t *testing.T) {
@@ -40,15 +40,15 @@ func TestProcessUserAuth(t *testing.T) {
 	/*****************************************************************************
 	 ***************** Tests when insertUser returns an error. *******************
 	 ****************************************************************************/
-	old := getUserByLinkedInID
-	defer func() { getUserByLinkedInID = old }()
+	old := updateUserByLinkedInID
+	defer func() { updateUserByLinkedInID = old }()
 
-	getUserByLinkedInID = func(id string, fields ...string) (*entity.User, error) {
+	updateUserByLinkedInID = func(id string, update interface{}, fields ...string) (*entity.User, error) {
 		return nil, errors.New("document does not exist")
 	}
 
 	insertUser = func(user *entity.User) (interface{}, error) {
-		return nil, fmt.Errorf("document could not be inserted")
+		return nil, errors.New("document could not be inserted")
 	}
 
 	userMap, err := ProcessUserAuth(data, linkedinToken)
@@ -65,7 +65,7 @@ func TestProcessUserAuth(t *testing.T) {
 	defer func() { jsonUnmarshal = oldJSONUnmarshal }()
 
 	jsonUnmarshal = func(data []byte, v interface{}) error {
-		return fmt.Errorf("could not unmarsh user")
+		return errors.New("could not unmarsh user")
 	}
 
 	userMap, err = ProcessUserAuth(data, linkedinToken)
@@ -74,19 +74,65 @@ func TestProcessUserAuth(t *testing.T) {
 	assert.Equal("could not unmarsh user", err.Error())
 }
 
+func TestGetUserMap(t *testing.T) {
+
+	assert := assert.New(t)
+
+	// Saves current function and restores it at the end.
+	old := createToken
+	defer func() { createToken = old }()
+
+	createToken = func(user map[string]string) (string, error) {
+		return "access_token123", nil
+	}
+
+	userMap, err := getUserMap(&user)
+
+	expected := map[string]string{
+		"linkedin_id": "linkedin_id123",
+		"first_name":  "John",
+		"last_name":   "Smith",
+		"token":       "access_token123",
+	}
+
+	assert.Nil(err)
+	assert.Equal(expected, userMap)
+
+	/*****************************************************************************
+	 ***************** Tests when createToken returns an error. ******************
+	 ****************************************************************************/
+
+	// Overwrites createToken function.
+	createToken = func(user map[string]string) (string, error) {
+		return "", errors.New("could not create token")
+	}
+
+	userMap, err = getUserMap(&user)
+
+	assert.Nil(userMap)
+	assert.Equal("could not create token", err.Error())
+
+}
+
 // Tests when ProcessUserAuth receives a user that does not exists in database.
 //
-// It mocks getUserByLinkedInID, making it return a nil user and checks that
+// It mocks updateUserByLinkedInID, making it return a nil user and checks that
 // insertUser is called in this case.
 func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 
 	// Saves current function and restores it at the end.
-	oldGetUser := getUserByLinkedInID
-	defer func() { getUserByLinkedInID = oldGetUser }()
+	oldGetUser := updateUserByLinkedInID
+	defer func() { updateUserByLinkedInID = oldGetUser }()
 
-	getUserByLinkedInID = func(id string, fields ...string) (*entity.User, error) {
+	updateUserByLinkedInID = func(id string, update interface{}, fields ...string) (*entity.User, error) {
 		return nil, errors.New("document does not exist")
 	}
+
+	// Saves current function and restores it at the end.
+	oldCreateToken := createToken
+	defer func() { createToken = oldCreateToken }()
+
+	createToken = createTokenMock
 
 	// Saves current function and restores it at the end.
 	old := insertUser
@@ -116,6 +162,7 @@ func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 		"linkedin_id": "linkedin_id123",
 		"first_name":  "John",
 		"last_name":   "Smith",
+		"token":       "access_token123",
 	}
 
 	assert.True(insertUserCalled)
@@ -123,23 +170,33 @@ func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 	assert.Equal(expected, userMap)
 }
 
-// Tests when ProcessUserAuth receives a user that does exists in database.
+// Tests when ProcessUserAuth receives a user that exists in database.
 //
-// It mocks getUserByLinkedInID, making it return a non-nil user and checks that
-// getUserByLinkedInID is called in this case.
+// It mocks updateUserByLinkedInID, making it return a non-nil user and
+// checks that the expected values are returned.
 func testProcessUserAuthExistingUser(assert *assert.Assertions) {
 
 	// Saves current function and restores it at the end.
-	old := getUserByLinkedInID
-	defer func() { getUserByLinkedInID = old }()
+	old := updateUserByLinkedInID
+	defer func() { updateUserByLinkedInID = old }()
 
-	getUserByLinkedInIDCalled := false
+	// Saves current function and restores it at the end.
+	oldCreateToken := createToken
+	defer func() { createToken = oldCreateToken }()
 
-	getUserByLinkedInID = func(id string, fields ...string) (*entity.User, error) {
+	createToken = createTokenMock
+
+	updateUserByLinkedInID = func(id string, update interface{}, fields ...string) (*entity.User, error) {
+
+		// Asserts that the value of update is set correctly.
+		expected := map[string]interface{}{
+			"$set": map[string]string{
+				"access_token": "access_token123",
+			},
+		}
+		assert.Equal(expected, update)
 
 		data, _ := json.Marshal(user)
-
-		getUserByLinkedInIDCalled = true
 
 		user := &entity.User{}
 		json.Unmarshal(data, user)
@@ -155,9 +212,14 @@ func testProcessUserAuthExistingUser(assert *assert.Assertions) {
 		"linkedin_id": "linkedin_id123",
 		"first_name":  "John",
 		"last_name":   "Smith",
+		"token":       "access_token123",
 	}
 
-	assert.True(getUserByLinkedInIDCalled)
 	assert.Nil(err)
 	assert.Equal(expected, userMap)
+}
+
+// Mocks createToken function.
+var createTokenMock = func(user map[string]string) (string, error) {
+	return "access_token123", nil
 }

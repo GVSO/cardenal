@@ -1,19 +1,20 @@
-package database
+package db
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/mongodb/mongo-go-driver/mongo"
-
 	"github.com/gvso/cardenal/src/app/settings"
+	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
 var connected = false
 
-var client MongoClient
+// Client is the client connection to MongoDB
+var Client MongoClient
 
-var database MongoDatabase
+// Database is the connection to the app database.
+var Database MongoDatabase
 
 /**
  * Helper functions from external packages.
@@ -24,28 +25,37 @@ var database MongoDatabase
  */
 var newMongoClient = mongo.NewClient
 
-var startConnection = func() error {
+// StartConnection starts the connection to database.
+var StartConnection = func() error {
 
 	if !connected {
 		var err error
 
-		client, err = getMongoClient()
+		Client, err = getMongoClient()
 		if err != nil {
 			return err
 		}
 
-		err = client.Connect(context.TODO())
+		err = Client.Connect(context.TODO())
 
 		if err != nil {
 			return err
 		}
 
-		database = client.Database(settings.MongoDB.Database)
+		Database = Client.Database(settings.MongoDB.Database)
 
 		connected = true
 	}
 
 	return nil
+}
+
+// GetCollection gets a collection in the database.
+var GetCollection = func(collection string) MongoCollection {
+
+	StartConnection()
+
+	return Database.Collection(collection)
 }
 
 var getMongoClient = func() (MongoClient, error) {

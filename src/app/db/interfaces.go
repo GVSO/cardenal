@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"context"
@@ -32,4 +32,6 @@ type MongoCollection interface {
 		opts ...insertopt.One) (*mongo.InsertOneResult, error)
 	FindOne(ctx context.Context, filter interface{},
 		opts ...findopt.One) *mongo.DocumentResult
+	FindOneAndUpdate(ctx context.Context, filter interface{},
+		update interface{}, opts ...findopt.UpdateOne) *mongo.DocumentResult
 }

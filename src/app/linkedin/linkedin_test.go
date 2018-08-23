@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	jwtlibrary "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/oauth2"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/gvso/cardenal/src/app/global"
 	"github.com/gvso/cardenal/src/app/global/mocks"
-	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/linkedin/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
 )
@@ -108,21 +106,6 @@ func TestProcessSuccessfulAuth(t *testing.T) {
 	assert.Equal("error when processing user", err.Error())
 
 	processUserAuth = oldProcessUserAuth
-
-	//////////////////////////////////////////
-	// Tests when setCokie returns an error.//
-	//////////////////////////////////////////
-	oldSetCookie := setCookie
-	defer func() { setCookie = oldSetCookie }()
-
-	// Overwrites setCookie function.
-	setCookie = setCookieErrorMock
-
-	user, err = processSuccessfulAuth(c, arg, linkedinToken)
-
-	// Asserts the returning values of the function.
-	assert.Nil(user)
-	assert.NotNil(err)
 }
 
 func TestGetProfile(t *testing.T) {
@@ -163,39 +146,18 @@ func TestSetCookie(t *testing.T) {
 
 	context := &globalmocks.GinContext{}
 
-	user := map[string]string{
-		"firstName": "John",
-		"lastName":  "Smith",
-		"id":        "JohnId123",
-	}
-
-	err := setCookie(context, user)
+	setCookie(context, "access_token123")
 
 	// Asserts that function was called with correct arguments.
-	assert.Nil(err)
 	assert.True(context.SetCookieCall.Called)
 	assert.Equal("token", context.SetCookieCall.Name)
-	assert.True(isTokenValid(context.SetCookieCall.Value))
+	assert.Equal("access_token123", context.SetCookieCall.Value)
 	assert.Equal(604800, context.SetCookieCall.MaxAge)
 	assert.Equal("/", context.SetCookieCall.Path)
 	assert.Equal("/", context.SetCookieCall.Path)
 	assert.False(context.SetCookieCall.Secure)
 	assert.True(context.SetCookieCall.HTTPOnly)
 
-	// Tests when createToken returns an error
-
-	// Saves current function and restores it at the end.
-	old := createToken
-	defer func() { createToken = old }()
-
-	// Overwrites createToken function.
-	createToken = func(user map[string]string) (string, error) {
-		return "", fmt.Errorf("could not create token")
-	}
-
-	err = setCookie(context, user)
-
-	assert.Equal("could not create token", err.Error())
 }
 func TestGetConfig(t *testing.T) {
 
@@ -342,24 +304,6 @@ func testFailedDataRetrieval(assert *assert.Assertions, router *gin.Engine, w *h
 	assert.Equal("Could not login.", w.Body.String())
 }
 
-// Checks that generated token stored in cookie is valid.
-//
-// It parses the token string and check for errors and validity of token. If no
-// errors are produced and token is valid, return true.
-func isTokenValid(tokenString string) bool {
-	token, err := jwtlibrary.Parse(tokenString, jwt.KeyFunction)
-
-	if err != nil {
-		return false
-	}
-
-	if token.Valid {
-		return true
-	}
-
-	return false
-}
-
 // Sets up router to test callback.
 func setupRouter() *gin.Engine {
 	router := gin.Default()
@@ -385,9 +329,4 @@ func getProfileMock(client HTTPClient) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unexpected error")
 	}
-}
-
-// Mocks setCookie that returns an error.
-func setCookieErrorMock(c global.GinContext, user map[string]string) error {
-	return fmt.Errorf("could not set cookie")
 }

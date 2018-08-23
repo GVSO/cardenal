@@ -1,8 +1,6 @@
 package globalmocks
 
-import (
-	"fmt"
-)
+import "errors"
 
 // GinContext is the mock structure for GinContext.
 type GinContext struct {
@@ -31,7 +29,7 @@ func (_m *GinContext) Cookie(name string) (string, error) {
 		return value, nil
 	}
 
-	return "", fmt.Errorf("No cookie with such value exists")
+	return "", errors.New("No cookie with such value exists")
 }
 
 // JSON mocks a call to JSON

@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/src/app/global"
-	"github.com/gvso/cardenal/src/app/jwt"
 	"github.com/gvso/cardenal/src/app/settings"
 	"github.com/gvso/cardenal/src/app/user"
 	"github.com/gvso/cardenal/src/app/utils/timeutils"
@@ -37,7 +36,6 @@ var conf OAuth2Config
  * overwritten in the testing files.
  */
 var processUserAuth = user.ProcessUserAuth
-var createToken = jwt.CreateToken
 
 func init() {
 	conf = getConfig().(*oauth2.Config)
@@ -164,24 +162,16 @@ var getProfile = func(client HTTPClient) ([]byte, error) {
 
 // Sets token value in cookie.
 //
-// It gets the user firstname, lastanme and id on LinkedIn and create a JWT
-// token which is later stored in cookie that expires in 7 days.
-var setCookie = func(c global.GinContext, user map[string]string) error {
-	token, err := createToken(user)
-
-	if err != nil {
-		return err
-	}
+// It gets the token string and stores it in a cookie that expires in 7 days.
+var setCookie = func(c global.GinContext, token string) {
 
 	c.SetCookie("token", token, timeutils.GetSeconds(7), "/", "", false, true)
-
-	return nil
 }
 
 // Manages workflow when authentication and data gathering have succeded.
 //
-// It process the user data and authentication workflow. Then, it sets or
-// updates the token in cookies.
+// It processes the user data and authentication workflow. Then, it sets or
+// updates the token in cookie and database.
 var processSuccessfulAuth = func(c global.GinContext,
 	data []byte, linkedinToken *oauth2.Token) (map[string]string, error) {
 
@@ -190,10 +180,7 @@ var processSuccessfulAuth = func(c global.GinContext,
 		return nil, err
 	}
 
-	err = setCookie(c, user)
-	if err != nil {
-		return nil, err
-	}
+	setCookie(c, user["token"])
 
 	return user, nil
 }

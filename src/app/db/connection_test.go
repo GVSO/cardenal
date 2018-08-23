@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gvso/cardenal/src/app/database/mocks"
+	"github.com/gvso/cardenal/src/app/db/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
 )
 
@@ -102,6 +102,30 @@ func TestGetMongoClient(t *testing.T) {
 	assert.Equal("could not established connection", err.Error())
 }
 
+func TestGetCollection(t *testing.T) {
+
+	assert := assert.New(t)
+
+	// Saves current function and restores it at the end.
+	old := StartConnection
+	defer func() { StartConnection = old }()
+
+	// Overwrites startConnection function.
+	StartConnection = func() error {
+
+		Database = &mocks.MongoDatabase{}
+
+		return nil
+	}
+
+	GetCollection("users")
+
+	Database := Database.(*mocks.MongoDatabase)
+
+	assert.True(Database.CollectionCall.Called)
+	assert.Equal("users", Database.CollectionCall.Name)
+}
+
 // Tests startConnection when getClient fails.
 func testFailedGetClientCall(assert *assert.Assertions) {
 	// Saves current function and restores it at the end.
@@ -113,7 +137,7 @@ func testFailedGetClientCall(assert *assert.Assertions) {
 		return nil, fmt.Errorf("could not connect")
 	}
 
-	err := startConnection()
+	err := StartConnection()
 
 	assert.False(connected)
 	assert.Equal("could not connect", err.Error())
@@ -124,12 +148,12 @@ func testSuccessfulConnection(assert *assert.Assertions) {
 	// Asserts that no connection has been performed yet.
 	assert.False(connected)
 
-	startConnection()
+	StartConnection()
 
 	// Asserts that connected is now true.
 	assert.True(connected)
 
-	client := client.(*mocks.MongoClient)
+	client := Client.(*mocks.MongoClient)
 
 	// Asserts that Connect was called correctly.
 	assert.True(client.ConnectCall.Called)
@@ -145,11 +169,11 @@ func testSuccessfulConnection(assert *assert.Assertions) {
 
 // Tests startConnection when connection to database does not succeed.
 func testFailedConnection(assert *assert.Assertions) {
-	startConnection()
+	StartConnection()
 
 	assert.False(connected)
 
-	client := client.(*mocks.MongoClient)
+	client := Client.(*mocks.MongoClient)
 
 	// Database should not be called.
 	assert.False(client.DatabaseCall.Called)
@@ -161,11 +185,11 @@ func testFailedConnection(assert *assert.Assertions) {
 func testAlreadyConnected(assert *assert.Assertions) {
 	connected = true
 
-	startConnection()
+	StartConnection()
 
 	assert.True(connected)
 
-	client := client.(*mocks.MongoClient)
+	client := Client.(*mocks.MongoClient)
 
 	assert.NotNil(client)
 	assert.False(client.ConnectCall.Called)

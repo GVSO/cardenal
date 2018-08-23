@@ -11,8 +11,9 @@ import (
 
 // MongoCollection is the mock structure for database.MongoCollection
 type MongoCollection struct {
-	FindOneCall   findOne
-	InsertOneCall insertOne
+	FindOneCall          findOne
+	FindOneAndUpdateCall findOneAndUpdate
+	InsertOneCall        insertOne
 }
 
 // FindOne mocks a call to FindOne.
@@ -20,6 +21,16 @@ func (_m *MongoCollection) FindOne(ctx context.Context, filter interface{},
 	opts ...findopt.One) *mongo.DocumentResult {
 
 	_m.FindOneCall = findOne{true, ctx, filter, opts}
+
+	return nil
+}
+
+// FindOneAndUpdate mocks a call to FindOneAndUpdate.
+func (_m *MongoCollection) FindOneAndUpdate(ctx context.Context,
+	filter interface{}, update interface{},
+	opts ...findopt.UpdateOne) *mongo.DocumentResult {
+
+	_m.FindOneAndUpdateCall = findOneAndUpdate{true, ctx, filter, update, opts}
 
 	return nil
 }
@@ -54,6 +65,13 @@ type findOne struct {
 	Ctx     context.Context
 	Filter  interface{}
 	Opts    []findopt.One
+}
+type findOneAndUpdate struct {
+	Called bool
+	Ctx    context.Context
+	Filter interface{}
+	Update interface{}
+	Opts   []findopt.UpdateOne
 }
 type insertOne struct {
 	times int
