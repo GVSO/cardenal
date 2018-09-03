@@ -4,7 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gvso/cardenal/src/app/global"
+
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 	"github.com/gvso/cardenal/src/app/global/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +27,28 @@ func TestCreateToken(t *testing.T) {
 
 	assert.Nil(err)
 	assert.True(isTokenValid(token))
+}
+
+func TestValidate(t *testing.T) {
+	assert := assert.New(t)
+
+	old := validateHelper
+	defer func() { validateHelper = old }()
+
+	keys := map[string]interface{}{
+		"token": "token123",
+	}
+
+	context := &gin.Context{
+		Keys: keys,
+	}
+
+	validateHelper = func(c global.GinContext) {
+		token, _ := c.Get("token")
+		assert.Equal(token, "token123")
+	}
+
+	Validate(context)
 }
 
 func TestValidateHelper(t *testing.T) {
