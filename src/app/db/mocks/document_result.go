@@ -15,8 +15,8 @@ func (_m *DocumentResult) Decode(v interface{}) error {
 
 	times := &_m.DecodeCall.times
 
-	// Error on second call.
-	if *times == 1 {
+	// Error on second and fourth call.
+	if *times == 1 || *times == 3 {
 		(*times)++
 
 		_m.DecodeCall = decode{*times, true, v}

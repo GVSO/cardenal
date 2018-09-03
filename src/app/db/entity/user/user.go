@@ -14,8 +14,8 @@ type User struct {
 	LinkedInID    string            `json:"id" bson:"linkedin_id"`
 	FirstName     string            `json:"firstName" bson:"first_name"`
 	LastName      string            `json:"lastName" bson:"last_name"`
-	LinkedInToken oauth2.Token      `json:"-" bson:"linkedin_token"`
 	AccessToken   string            `json:"-" bson:"access_token"`
+	LinkedInToken oauth2.Token      `json:"-" bson:"linkedin_token"`
 }
 
 var collection db.MongoCollection
@@ -78,8 +78,27 @@ var UpdateUserByLinkedInID = func(id string, update interface{},
 	return &user, nil
 }
 
+// IsTokenValid determines if token is valid for the given user.
+//
+// It checks that the token passed to the function is the current one in the
+// database.
+var IsTokenValid = func(linkedinID string, token string) bool {
+	user := User{}
+	filter := map[string]string{
+		"linkedin_id":  linkedinID,
+		"access_token": token,
+	}
+
+	err := findOne(filter).Decode(&user)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
 // Returns a single DocumentResult that meets the filter criteria.
-var findOne = func(filter *bson.Document) db.DocumentResult {
+var findOne = func(filter interface{}) db.DocumentResult {
 
 	return collection.FindOne(nil, filter)
 }

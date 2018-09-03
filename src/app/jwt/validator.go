@@ -6,24 +6,51 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 
+	"github.com/gvso/cardenal/src/app/db/entity/user"
 	"github.com/gvso/cardenal/src/app/global"
 	"github.com/gvso/cardenal/src/app/settings"
 )
 
+// TokenClaims is the struct of the claims in the JWT token.
+type TokenClaims struct {
+	*jwt.StandardClaims
+	FirstName  string `json:"first_name,omitempty"`
+	LastName   string `json:"last_name,omitempty"`
+	LinkedInID string `json:"linkedin_id"`
+}
+
 var key []byte
+
+/**
+ * Helper functions from external packages.
+ *
+ * For testing purposes, variables are declared which are defined as pointers to
+ * function. The advantage of doing this is that these variables can later be
+ * overwritten in the testing files.
+ */
+var isUserTokenValid = user.IsTokenValid
 
 // Validate checks that JWT token is valid.
 var Validate = func(c *gin.Context) {
 	validateHelper(c)
 }
 
+// KeyFunction returns the encoding secret key.
+var KeyFunction = func(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("There was an error")
+	}
+
+	return settings.JwtSecret, nil
+}
+
 // Helper function for Validate function.
 var validateHelper = func(c global.GinContext) {
 
-	authorizationValue, err := c.Cookie("token")
+	tokenString, err := c.Cookie("token")
 
-	if authorizationValue != "" && err == nil {
-		token, err := jwt.Parse(authorizationValue, KeyFunction)
+	if tokenString != "" && err == nil {
+		token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, KeyFunction)
 
 		if err != nil {
 			c.Abort()
@@ -38,26 +65,26 @@ var validateHelper = func(c global.GinContext) {
 		}
 
 		if token.Valid {
-			c.Set("token", token.Claims)
 
-			// Calls next request handler.
-			c.Next()
+			claims := token.Claims.(*TokenClaims)
 
-			return
+			if isTokenInDatabase(claims.LinkedInID, tokenString) {
+				c.Set("token", token.Claims)
+
+				// Calls next request handler.
+				c.Next()
+
+				return
+			}
+
 		}
 	}
 
 	c.String(403, "You are not authenticated")
 
 	c.Abort()
-
 }
 
-// KeyFunction returns the encoding secret key.
-var KeyFunction = func(token *jwt.Token) (interface{}, error) {
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("There was an error")
-	}
-
-	return settings.JwtSecret, nil
+var isTokenInDatabase = func(linkedinID string, token string) bool {
+	return isUserTokenValid(linkedinID, token)
 }

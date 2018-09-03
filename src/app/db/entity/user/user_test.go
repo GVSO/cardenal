@@ -55,21 +55,19 @@ func TestGetUserByLinkedInID(t *testing.T) {
 	oldFindOne := findOne
 	defer func() { findOne = oldFindOne }()
 
-	var filter *bson.Document
 	dr := &mocks.DocumentResult{}
 
 	// Overwrites findOne function.
-	findOne = func(filterArg *bson.Document) db.DocumentResult {
-		filter = filterArg
+	findOne = func(filter interface{}) db.DocumentResult {
+		// Asserts the value of the filter.
+		f := filter.(*bson.Document)
+		assert.Equal("linkedin_id", f.ElementAt(0).Key())
+		assert.Equal("linkedin_id123", f.ElementAt(0).Value().StringValue())
 
 		return dr
 	}
 
 	user, err := GetUserByLinkedInID("linkedin_id123")
-
-	// Asserts the value of the filter.
-	assert.Equal("linkedin_id", filter.ElementAt(0).Key())
-	assert.Equal("linkedin_id123", filter.ElementAt(0).Value().StringValue())
 
 	assert.True(dr.DecodeCall.Called)
 	assert.Equal(User{}, dr.DecodeCall.Value)
@@ -146,6 +144,44 @@ func TestUpdateUserByLinkedInID(t *testing.T) {
 
 	assert.Nil(user)
 	assert.Equal("could not decode document", err.Error())
+}
+
+func TestIsTokenValid(t *testing.T) {
+	assert := assert.New(t)
+
+	// Saves current collection and restores it at the end.
+	old := collection
+	defer func() { collection = old }()
+
+	collection = &mocks.MongoCollection{}
+
+	// Saves current function and restores it at the end.
+	oldFindOne := findOne
+	defer func() { findOne = oldFindOne }()
+
+	dr := &mocks.DocumentResult{}
+
+	// Overwrites findOne function.
+	findOne = func(filter interface{}) db.DocumentResult {
+		// Asserts the value of the filter.
+		f := filter.(map[string]string)
+		assert.Equal("linkedin_id123", f["linkedin_id"])
+		assert.Equal("token123", f["access_token"])
+
+		return dr
+	}
+
+	isTokenValid := IsTokenValid("linkedin_id123", "token123")
+
+	assert.True(dr.DecodeCall.Called)
+	assert.Equal(User{}, dr.DecodeCall.Value)
+
+	assert.True(isTokenValid)
+
+	// mocks.DocumentResult.Decode() returns an error the fourth time
+	isTokenValid = IsTokenValid("linkedin_id123", "token123")
+
+	assert.False(isTokenValid)
 }
 
 func TestFindOne(t *testing.T) {

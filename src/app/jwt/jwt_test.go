@@ -38,6 +38,22 @@ func TestValidateHelper(t *testing.T) {
 
 }
 
+func TestIsTokenInDatabase(t *testing.T) {
+	assert := assert.New(t)
+
+	old := isUserTokenValid
+	defer func() { isUserTokenValid = old }()
+
+	isUserTokenValid = func(linkedinID string, token string) bool {
+		assert.Equal("linkedin_id123", linkedinID)
+		assert.Equal("token123", token)
+
+		return true
+	}
+
+	isTokenInDatabase("linkedin_id123", "token123")
+}
+
 // Test case for when no token was provided in cookie.
 func testValidateHelperWithNoToken(c *globalmocks.GinContext, assert *assert.Assertions) {
 	validateHelper(c)
@@ -59,9 +75,22 @@ func testValidateHelperWithValidToken(c *globalmocks.GinContext, assert *assert.
 	tokenString := generateToken(true)
 	c.SetCookie("token", tokenString, 10, "", "", false, true)
 
+	token, _ := jwt.ParseWithClaims(tokenString, &TokenClaims{}, KeyFunction)
+	claims := token.Claims.(*TokenClaims)
+
+	old := isTokenInDatabase
+	defer func() { isTokenInDatabase = old }()
+
+	// Tests when token is the one in database.
+	isTokenInDatabase = func(linkedin_id string, token string) bool {
+		assert.Equal(claims.LinkedInID, linkedin_id)
+		assert.Equal(tokenString, token)
+
+		return true
+	}
+
 	validateHelper(c)
 
-	token, _ := jwt.Parse(tokenString, KeyFunction)
 	assert.True(c.SetCall.Called)
 	assert.Equal("token", c.SetCall.Key)
 	assert.Equal(token.Claims, c.SetCall.Value)
@@ -69,6 +98,27 @@ func testValidateHelperWithValidToken(c *globalmocks.GinContext, assert *assert.
 	assert.True(c.NextCall.Called)
 
 	assert.False(c.AbortCall.Called)
+
+	// Resets values for next tests.
+	resetCallValues(c)
+
+	// Tests when token is not the one in database.
+	isTokenInDatabase = func(linkedin_id string, token string) bool {
+		assert.Equal(claims.LinkedInID, linkedin_id)
+		assert.Equal(tokenString, token)
+
+		return false
+	}
+
+	validateHelper(c)
+
+	assert.False(c.SetCall.Called)
+	assert.False(c.NextCall.Called)
+
+	assert.True(c.AbortCall.Called)
+	assert.True(c.StringCall.Called)
+	assert.Equal(403, c.StringCall.Code)
+	assert.Equal("You are not authenticated", c.StringCall.Format)
 
 	// Resets values for next tests.
 	resetCallValues(c)
@@ -126,10 +176,10 @@ func generateToken(valid bool) string {
 	ttl := 10 * time.Second
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"first_name": "John",
-		"last_name":  "Smith",
-		"id":         "JohnId123",
-		"exp":        time.Now().UTC().Add(ttl).Unix(),
+		"first_name":  "John",
+		"last_name":   "Smith",
+		"linkedin_id": "linkedin_id123",
+		"exp":         time.Now().UTC().Add(ttl).Unix(),
 	})
 
 	tokenString, _ := token.SignedString(settings.JwtSecret)
