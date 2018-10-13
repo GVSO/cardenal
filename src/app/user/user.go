@@ -16,7 +16,7 @@ import (
  * function. The advantage of doing this is that these variables can later be
  * overwritten in the testing files.
  */
-var createToken = jwt.CreateToken
+var createTokenString = jwt.CreateTokenString
 var updateUserByLinkedInID = entity.UpdateUserByLinkedInID
 var insertUser = entity.InsertUser
 var jsonUnmarshal = json.Unmarshal
@@ -68,7 +68,7 @@ var getUserMap = func(user *entity.User) (map[string]string, error) {
 		"last_name":   user.LastName,
 	}
 
-	token, err := createToken(userMap)
+	token, err := createTokenString(userMap)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateToken(t *testing.T) {
+func TestCreateTokenString(t *testing.T) {
 
 	assert := assert.New(t)
 
@@ -23,7 +23,7 @@ func TestCreateToken(t *testing.T) {
 		"last_name":  "Smith",
 	}
 
-	token, err := CreateToken(user)
+	token, err := CreateTokenString(user)
 
 	assert.Nil(err)
 	assert.True(isTokenValid(token))

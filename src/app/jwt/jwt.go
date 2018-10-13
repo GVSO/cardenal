@@ -9,8 +9,8 @@ import (
 	"github.com/gvso/cardenal/src/app/utils/timeutils"
 )
 
-// CreateToken returns a JWT token.
-var CreateToken = func(user map[string]string) (string, error) {
+// CreateTokenString returns a JWT token as a string.
+var CreateTokenString = func(user map[string]string) (string, error) {
 
 	ttl := time.Duration(timeutils.GetSeconds(7)) * time.Second
 

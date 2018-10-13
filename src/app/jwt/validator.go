@@ -67,8 +67,9 @@ var validateHelper = func(c global.GinContext) {
 		if token.Valid {
 
 			claims := token.Claims.(*TokenClaims)
+			linkedinID := (*claims).LinkedInID
 
-			if isTokenInDatabase(claims.LinkedInID, tokenString) {
+			if isTokenInDatabase(linkedinID, tokenString) {
 				c.Set("token", token.Claims)
 
 				// Calls next request handler.
@@ -88,3 +89,8 @@ var validateHelper = func(c global.GinContext) {
 var isTokenInDatabase = func(linkedinID string, token string) bool {
 	return isUserTokenValid(linkedinID, token)
 }
+
+// @TODO: Update LinkedIn Access Token.
+/*var updateAccessToken = func(linkedinID string) jwt.Token {
+
+}*/

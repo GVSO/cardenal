@@ -79,10 +79,10 @@ func TestGetUserMap(t *testing.T) {
 	assert := assert.New(t)
 
 	// Saves current function and restores it at the end.
-	old := createToken
-	defer func() { createToken = old }()
+	old := createTokenString
+	defer func() { createTokenString = old }()
 
-	createToken = func(user map[string]string) (string, error) {
+	createTokenString = func(user map[string]string) (string, error) {
 		return "access_token123", nil
 	}
 
@@ -103,7 +103,7 @@ func TestGetUserMap(t *testing.T) {
 	 ****************************************************************************/
 
 	// Overwrites createToken function.
-	createToken = func(user map[string]string) (string, error) {
+	createTokenString = func(user map[string]string) (string, error) {
 		return "", errors.New("could not create token")
 	}
 
@@ -111,6 +111,10 @@ func TestGetUserMap(t *testing.T) {
 
 	assert.Nil(userMap)
 	assert.Equal("could not create token", err.Error())
+
+}
+
+func TestCreateAccessToken(t *testing.T) {
 
 }
 
@@ -129,10 +133,10 @@ func testProcessUserAuthNotExistingUser(assert *assert.Assertions) {
 	}
 
 	// Saves current function and restores it at the end.
-	oldCreateToken := createToken
-	defer func() { createToken = oldCreateToken }()
+	oldCreateToken := createTokenString
+	defer func() { createTokenString = oldCreateToken }()
 
-	createToken = createTokenMock
+	createTokenString = createTokenStringMock
 
 	// Saves current function and restores it at the end.
 	old := insertUser
@@ -181,10 +185,10 @@ func testProcessUserAuthExistingUser(assert *assert.Assertions) {
 	defer func() { updateUserByLinkedInID = old }()
 
 	// Saves current function and restores it at the end.
-	oldCreateToken := createToken
-	defer func() { createToken = oldCreateToken }()
+	oldCreateToken := createTokenString
+	defer func() { createTokenString = oldCreateToken }()
 
-	createToken = createTokenMock
+	createTokenString = createTokenStringMock
 
 	updateUserByLinkedInID = func(id string, update interface{}, fields ...string) (*entity.User, error) {
 
@@ -220,6 +224,6 @@ func testProcessUserAuthExistingUser(assert *assert.Assertions) {
 }
 
 // Mocks createToken function.
-var createTokenMock = func(user map[string]string) (string, error) {
+var createTokenStringMock = func(user map[string]string) (string, error) {
 	return "access_token123", nil
 }
