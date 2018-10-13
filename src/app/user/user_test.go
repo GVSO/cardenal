@@ -114,10 +114,6 @@ func TestGetUserMap(t *testing.T) {
 
 }
 
-func TestCreateAccessToken(t *testing.T) {
-
-}
-
 // Tests when ProcessUserAuth receives a user that does not exists in database.
 //
 // It mocks updateUserByLinkedInID, making it return a nil user and checks that

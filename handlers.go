@@ -15,5 +15,6 @@ func callbackHandler(c *gin.Context) {
 }
 
 func userHandler(c *gin.Context) {
-	c.String(200, "success")
+	token, _ := c.Cookie("token")
+	c.String(200, token)
 }

@@ -33,7 +33,7 @@ func setupRouter() *gin.Engine {
 		data.GET("/user", userHandler)
 	}
 
-	// Used to load css, js, and images files.
+	// Used to load css, js, and image files.
 	router.Use(static.Serve("/", static.LocalFile("./client/dist", true)))
 
 	// If route was not defined in Go server, make React handle route.

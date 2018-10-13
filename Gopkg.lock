@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/buger/jsonparser"
   packages = ["."]
-  revision = "f4dd9f5a6b441265aefc1d44872a6f8c10f42b37"
+  revision = "6acdf747ae99cad92d1e8134606008acaca71844"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -63,8 +63,8 @@
 [[projects]]
   name = "github.com/joho/godotenv"
   packages = ["."]
-  revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
-  version = "v1.2.0"
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -94,9 +94,11 @@
   name = "github.com/mongodb/mongo-go-driver"
   packages = [
     "bson",
+    "bson/bsoncodec",
     "bson/builder",
     "bson/decimal",
     "bson/elements",
+    "bson/internal/llbson",
     "bson/objectid",
     "bson/parser",
     "bson/parser/ast",
@@ -124,6 +126,7 @@
     "internal",
     "mongo",
     "mongo/aggregateopt",
+    "mongo/bulkwriteopt",
     "mongo/changestreamopt",
     "mongo/clientopt",
     "mongo/collectionopt",
@@ -144,8 +147,8 @@
     "mongo/transactionopt",
     "mongo/updateopt"
   ]
-  revision = "e3f321c2848b138976cf8c6143aab9702e2b2fc6"
-  version = "v0.0.12"
+  revision = "518f2246cd0d376a473b93baaee3942d99e44d0f"
+  version = "v0.0.16"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -181,7 +184,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["pbkdf2"]
-  revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
+  revision = "a92615f3c49003920a58dedcf32cf55022cefb8d"
 
 [[projects]]
   branch = "master"
@@ -190,7 +193,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
+  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
 
 [[projects]]
   branch = "master"
@@ -200,7 +203,7 @@
     "internal",
     "linkedin"
   ]
-  revision = "d2e6202438beef2727060aa7cabdd924d92ebfd9"
+  revision = "c57b0facaced709681d9f90397429b9430a74754"
 
 [[projects]]
   branch = "master"
@@ -212,7 +215,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "917fdcba135dcbaccd57425db91723541b4427c8"
+  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -238,8 +241,8 @@
     "internal/urlfetch",
     "urlfetch"
   ]
-  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
-  version = "v1.1.0"
+  revision = "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06"
+  version = "v1.2.0"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
@@ -256,6 +259,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a91f3f259559c178150030e502502640af3d7686ce4687dc88dfcbe2d13d705e"
+  inputs-digest = "38999938d310924c8a8455642d84db6e41b72fac6646f9f04ff6f1174fe7a03f"
   solver-name = "gps-cdcl"
   solver-version = 1
