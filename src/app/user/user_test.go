@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	entity "github.com/gvso/cardenal/src/app/db/entity/user"
 )

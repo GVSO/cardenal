@@ -5,8 +5,8 @@ import (
 
 	"github.com/gvso/cardenal/src/app/db"
 	"github.com/gvso/cardenal/src/app/db/mocks"
-	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var testUser = User{
@@ -55,14 +55,15 @@ func TestGetUserByLinkedInID(t *testing.T) {
 	oldFindOne := findOne
 	defer func() { findOne = oldFindOne }()
 
-	dr := &mocks.DocumentResult{}
+	dr := &mocks.SingleResult{}
 
 	// Overwrites findOne function.
-	findOne = func(filter interface{}) db.DocumentResult {
+	findOne = func(filter interface{}) db.SingleResult {
 		// Asserts the value of the filter.
-		f := filter.(*bson.Document)
-		assert.Equal("linkedin_id", f.ElementAt(0).Key())
-		assert.Equal("linkedin_id123", f.ElementAt(0).Value().StringValue())
+		expected := bson.D{{"linkedin_id", "linkedin_id123"}}
+		f := filter.(bson.D)
+
+		assert.Equal(expected, f)
 
 		return dr
 	}
@@ -81,7 +82,7 @@ func TestGetUserByLinkedInID(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(expected, *user)
 
-	// mocks.DocumentResult.Decode() returns an error the second time
+	// mocks.SingleResult.Decode() returns an error the second time
 	user, err = GetUserByLinkedInID("linkedin_id123")
 
 	assert.Nil(user)
@@ -108,14 +109,13 @@ func TestUpdateUserByLinkedInID(t *testing.T) {
 		},
 	}
 
-	dr := &mocks.DocumentResult{}
+	dr := &mocks.SingleResult{}
 
 	// Overwrites findOne function.
-	findOneAndUpdate = func(filterArg *bson.Document, updateArg interface{}) db.DocumentResult {
-
+	findOneAndUpdate = func(filterArg *bson.D, updateArg interface{}) db.SingleResult {
 		// Asserts the value of the filter.
-		assert.Equal("linkedin_id", filterArg.ElementAt(0).Key())
-		assert.Equal("linkedin_id123", filterArg.ElementAt(0).Value().StringValue())
+		expected := &bson.D{{"linkedin_id", "linkedin_id123"}}
+		assert.Equal(expected, filterArg)
 
 		// Asserts the value of update.
 		assert.Equal(update, updateArg)
@@ -139,7 +139,7 @@ func TestUpdateUserByLinkedInID(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(expected, *user)
 
-	// mocks.DocumentResult.Decode() returns an error the second time
+	// mocks.SingleResult.Decode() returns an error the second time
 	user, err = UpdateUserByLinkedInID("linkedin_id123", update)
 
 	assert.Nil(user)
@@ -159,10 +159,10 @@ func TestIsTokenValid(t *testing.T) {
 	oldFindOne := findOne
 	defer func() { findOne = oldFindOne }()
 
-	dr := &mocks.DocumentResult{}
+	dr := &mocks.SingleResult{}
 
 	// Overwrites findOne function.
-	findOne = func(filter interface{}) db.DocumentResult {
+	findOne = func(filter interface{}) db.SingleResult {
 		// Asserts the value of the filter.
 		f := filter.(map[string]string)
 		assert.Equal("linkedin_id123", f["linkedin_id"])
@@ -178,7 +178,7 @@ func TestIsTokenValid(t *testing.T) {
 
 	assert.True(isTokenValid)
 
-	// mocks.DocumentResult.Decode() returns an error the fourth time
+	// mocks.SingleResult.Decode() returns an error the fourth time
 	isTokenValid = IsTokenValid("linkedin_id123", "token123")
 
 	assert.False(isTokenValid)
@@ -191,7 +191,7 @@ func TestFindOne(t *testing.T) {
 	// Overwrites collection value.
 	collection = &mocks.MongoCollection{}
 
-	filter := bson.NewDocument(bson.EC.String("linkedin_id", "linkedin_id123"))
+	filter := bson.D{{"linkedin_id", "linkedin_id123"}}
 
 	findOne(filter)
 
@@ -208,12 +208,12 @@ func TestFindOneAndUpdate(t *testing.T) {
 	// Overwrites collection value.
 	collection = &mocks.MongoCollection{}
 
-	filter := bson.NewDocument(bson.EC.String("linkedin_id", "linkedin_id123"))
-	update := map[string]interface{}{
-		"$set": map[string]string{
-			"access_token": "access_token123",
+	filter := &bson.D{{"linkedin_id", "linkedin_id123"}}
+	update := &bson.D{{
+		"$set", bson.E{
+			"access_token", "access_token123",
 		},
-	}
+	}}
 
 	findOneAndUpdate(filter, update)
 

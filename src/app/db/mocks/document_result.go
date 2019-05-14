@@ -5,13 +5,13 @@ import (
 	"reflect"
 )
 
-// DocumentResult is the mock structure for database.DocumentResult.
-type DocumentResult struct {
+// SingleResult is the mock structure for database.SingleResult.
+type SingleResult struct {
 	DecodeCall decode
 }
 
 // Decode mocks a call to Decode.
-func (_m *DocumentResult) Decode(v interface{}) error {
+func (_m *SingleResult) Decode(v interface{}) error {
 
 	times := &_m.DecodeCall.times
 

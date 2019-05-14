@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/mongodb/mongo-go-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/oauth2"
 
@@ -45,7 +45,7 @@ var InsertUser = func(user *User) (interface{}, error) {
 var GetUserByLinkedInID = func(id string, fields ...string) (*User, error) {
 
 	user := User{}
-	filter := bson.NewDocument(bson.EC.String("linkedin_id", id))
+	filter := bson.D{{"linkedin_id", id}}
 
 	err := findOne(filter).Decode(&user)
 	if err != nil {
@@ -64,9 +64,9 @@ var UpdateUserByLinkedInID = func(id string, update interface{},
 	fields ...string) (*User, error) {
 
 	user := User{}
-	filter := bson.NewDocument(bson.EC.String("linkedin_id", id))
+	filter := bson.D{{"linkedin_id", id}}
 
-	err := findOneAndUpdate(filter, update).Decode(&user)
+	err := findOneAndUpdate(&filter, update).Decode(&user)
 
 	if err != nil {
 		return nil, err
@@ -94,15 +94,15 @@ var IsTokenValid = func(linkedinID string, token string) bool {
 	return true
 }
 
-// Returns a single DocumentResult that meets the filter criteria.
-var findOne = func(filter interface{}) db.DocumentResult {
+// Returns a SingleResult that meets the filter criteria.
+var findOne = func(filter interface{}) db.SingleResult {
 
 	return collection.FindOne(nil, filter)
 }
 
-// Updates and returns a single DocumentResult that meets the filter criteria.
-var findOneAndUpdate = func(filter *bson.Document,
-	update interface{}) db.DocumentResult {
+// Updates and returns a SingleResult that meets the filter criteria.
+var findOneAndUpdate = func(filter *bson.D,
+	update interface{}) db.SingleResult {
 
 	return collection.FindOneAndUpdate(nil, filter, update)
 }

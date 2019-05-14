@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// DocumentResult is an interface for mongo.DocumentResult
-type DocumentResult interface {
+// SingleResult is an interface for mongo.SingleResult
+type SingleResult interface {
 	Decode(v interface{}) error
 }
 
