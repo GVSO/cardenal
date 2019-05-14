@@ -5,4 +5,4 @@ package global
 const LinkedInRedirectPath = "/api/services/login/callback"
 
 // LinkedInBaseURL is the authentication base URL for LinkedIn.
-const LinkedInBaseURL = "https://api.linkedin.com/v1"
+const LinkedInBaseURL = "https://api.linkedin.com/v2"

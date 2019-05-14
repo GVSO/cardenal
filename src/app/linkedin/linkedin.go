@@ -23,8 +23,8 @@ import (
  *
  * @see https://developer.linkedin.com/docs/fields/basic-profile
  */
-var fields = []string{"id", "first-name", "last-name", "headline", "industry",
-	"picture-urls::(original)", "specialties", "positions", "public-profile-url"}
+var fields = []string{"id", "localizedFirstName", "localizedLastName",
+	"profilePicture(displayImage~:playableStreams)"}
 
 var conf OAuth2Config
 
@@ -122,7 +122,7 @@ var getConfig = func() OAuth2Config {
 		ClientSecret: settings.LinkedIn.ClientSecret,
 		RedirectURL:  settings.LinkedIn.RedirectURLHost + ":" + settings.Port + global.LinkedInRedirectPath,
 		Scopes: []string{
-			"r_basicprofile",
+			"r_liteprofile",
 			"r_emailaddress",
 		},
 		Endpoint: linkedin.Endpoint,
@@ -133,10 +133,10 @@ var getConfig = func() OAuth2Config {
 //
 // It is used by Callback to request basic user information from LinkedIn API.
 var getProfile = func(client HTTPClient) ([]byte, error) {
-	f := strings.Join(fields, ",")
+	projection := strings.Join(fields, ",")
 
 	// Request data from API.
-	resp, err := client.Get(global.LinkedInBaseURL + "/people/~:(" + f + ")?format=json")
+	resp, err := client.Get(global.LinkedInBaseURL + "/me/?projection=(" + projection + ")")
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ var getProfile = func(client HTTPClient) ([]byte, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-
+		log.Println(string(data))
 		if settings.Development {
 			log.Println(string(data))
 		}

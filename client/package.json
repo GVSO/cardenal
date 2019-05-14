@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^1.4.3",
-    "@material-ui/icons": "^2.0.1",
-    "material-ui-search-bar": "^1.0.0-beta.9",
-    "parcel-bundler": "^1.9.7",
-    "react": "^16.4.2",
-    "react-dom": "^16.4.2",
-    "react-router-dom": "^4.3.1"
+    "@material-ui/core": "^3.9.3",
+    "@material-ui/icons": "^3.0.2",
+    "material-ui-search-bar": "^1.0.0-beta.13",
+    "parcel-bundler": "^1.12.3",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.0"
   },
   "scripts": {
     "start": "parcel public/index.html --hmr-port 5678",
@@ -17,20 +17,21 @@
     "standard:fix": "standard **/*/*.tsx --fix"
   },
   "devDependencies": {
-    "@types/classnames": "^2.2.6",
-    "@types/enzyme": "^3.1.13",
-    "@types/material-ui": "^0.21.5",
-    "@types/react": "^16.4.9",
-    "@types/react-dom": "^16.0.7",
-    "@types/react-router-dom": "^4.3.0",
-    "@types/recompose": "^0.26.4",
+    "@types/classnames": "^2.2.7",
+    "@types/enzyme": "^3.9.2",
+    "@types/material-ui": "^0.21.6",
+    "@types/react": "^16.8.17",
+    "@types/react-dom": "^16.8.4",
+    "@types/react-router-dom": "^4.3.3",
+    "@types/recompose": "^0.30.6",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
-    "eslint-plugin-typescript": "^0.12.0",
-    "node-sass": "^4.9.3",
-    "standard": "^11.0.1",
-    "typescript": "^3.0.1",
-    "typescript-eslint-parser": "^18.0.0"
+    "node-sass": "^4.12.0",
+    "standard": "^12.0.1",
+    "typescript": "^3.4.5"
   },
   "standard": {
     "parser": "typescript-eslint-parser",

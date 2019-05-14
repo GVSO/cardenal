@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/mongodb/mongo-go-driver/mongo/collectionopt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // MongoDatabase is the mock structure for database.MongoDatabase
@@ -11,7 +11,7 @@ type MongoDatabase struct {
 }
 
 // Collection mocks a call to Collection.
-func (_m *MongoDatabase) Collection(name string, opts ...collectionopt.Option) *mongo.Collection {
+func (_m *MongoDatabase) Collection(name string, opts ...*options.CollectionOptions) *mongo.Collection {
 	_m.CollectionCall = collection{true, name, opts}
 
 	return nil
@@ -23,5 +23,5 @@ func (_m *MongoDatabase) Collection(name string, opts ...collectionopt.Option) *
 type collection struct {
 	Called bool
 	Name   string
-	Opts   []collectionopt.Option
+	Opts   []*options.CollectionOptions
 }

@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/mongodb/mongo-go-driver/bson"
-	"github.com/mongodb/mongo-go-driver/bson/objectid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/oauth2"
 
 	"github.com/gvso/cardenal/src/app/db"
@@ -10,12 +10,12 @@ import (
 
 // User is the struct for a user.
 type User struct {
-	ID            objectid.ObjectID `json:"-" bson:"_id"`
-	LinkedInID    string            `json:"id" bson:"linkedin_id"`
-	FirstName     string            `json:"firstName" bson:"first_name"`
-	LastName      string            `json:"lastName" bson:"last_name"`
-	AccessToken   string            `json:"-" bson:"access_token"`
-	LinkedInToken oauth2.Token      `json:"-" bson:"linkedin_token"`
+	ID            primitive.ObjectID `json:"-" bson:"_id,omitempty"`
+	LinkedInID    string             `json:"id" bson:"linkedin_id"`
+	FirstName     string             `json:"localizedFirstName" bson:"first_name"`
+	LastName      string             `json:"localizedLastName" bson:"last_name"`
+	AccessToken   string             `json:"-" bson:"access_token"`
+	LinkedInToken oauth2.Token       `json:"-" bson:"linkedin_token"`
 }
 
 var collection db.MongoCollection
@@ -26,9 +26,6 @@ func init() {
 
 // InsertUser inserts a new user.
 var InsertUser = func(user *User) (interface{}, error) {
-
-	// Sets the _id field value.
-	(*user).ID = objectid.New()
 
 	res, err := collection.InsertOne(nil, user)
 	if err != nil {

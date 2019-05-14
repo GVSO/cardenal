@@ -25,7 +25,7 @@ func TestLogin(t *testing.T) {
 
 	Login(context)
 
-	redirectURL := "https://www.linkedin.com/oauth/v2/authorization?access_type=offline&client_id=&redirect_uri=%3A%2Fapi%2Fservices%2Flogin%2Fcallback&response_type=code&scope=r_basicprofile+r_emailaddress&state=state"
+	redirectURL := "https://www.linkedin.com/oauth/v2/authorization?access_type=offline&client_id=&redirect_uri=%3A%2Fapi%2Fservices%2Flogin%2Fcallback&response_type=code&scope=r_liteprofile+r_emailaddress&state=state"
 
 	// Asserts that function was called with correct arguments.
 	assert.True(context.RedirectCall.Called)
@@ -179,7 +179,7 @@ func TestGetConfig(t *testing.T) {
 	redirectURL := settings.LinkedIn.RedirectURLHost + ":" + settings.Port + global.LinkedInRedirectPath
 	assert.Equal(redirectURL, config.RedirectURL, "redirect URL is not correct")
 
-	assert.Equal([]string{"r_basicprofile", "r_emailaddress"}, config.Scopes, "scopes are not correct")
+	assert.Equal([]string{"r_liteprofile", "r_emailaddress"}, config.Scopes, "scopes are not correct")
 	assert.Equal(linkedin.Endpoint, config.Endpoint, "endpoint is not correct")
 }
 

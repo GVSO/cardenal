@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
-  version = "3.2.0"
+  version = "^3.2.0"
 
 [[constraint]]
   branch = "master"
@@ -35,19 +35,15 @@
 
 [[constraint]]
   name = "github.com/gin-gonic/gin"
-  version = "1.1.4"
+  version = "^1.0.0"
 
 [[constraint]]
   name = "github.com/joho/godotenv"
-  version = "1.2.0"
-
-[[constraint]]
-  name = "github.com/mongodb/mongo-go-driver"
-  version = "0.0.16"
+  version = "^1.0.0"
 
 [[constraint]]
   name = "github.com/stretchr/testify"
-  version = "1.2.2"
+  version = "^1.0.0"
 
 [[constraint]]
   branch = "master"
@@ -56,3 +52,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "go.mongodb.org/mongo-driver"
+  version = "^1.0.0"

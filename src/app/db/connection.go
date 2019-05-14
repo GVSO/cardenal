@@ -3,9 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/gvso/cardenal/src/app/settings"
-	"github.com/mongodb/mongo-go-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var connected = false
@@ -61,8 +63,9 @@ var GetCollection = func(collection string) MongoCollection {
 var getMongoClient = func() (MongoClient, error) {
 	connection := getConnectionString()
 
-	client, err := newMongoClient(connection)
+	client, err := newMongoClient(options.Client().ApplyURI(connection))
 	if err != nil {
+		log.Println("Could not connect")
 		return nil, err
 	}
 
@@ -72,7 +75,9 @@ var getMongoClient = func() (MongoClient, error) {
 var getConnectionString = func() string {
 	config := &settings.MongoDB
 
-	connectionString := fmt.Sprintf("mongodb://%s:%s@%s:%s", config.User, config.Password, config.Host, config.Port)
+	if config.User != "" && config.Password != "" {
+		return fmt.Sprintf("mongodb://%s:%s@%s:%s", config.User, config.Password, config.Host, config.Port)
+	}
 
-	return connectionString
+	return fmt.Sprintf("mongodb://%s:%s", config.Host, config.Port)
 }

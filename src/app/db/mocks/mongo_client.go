@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/mongodb/mongo-go-driver/mongo/dbopt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // MongoClient is the mock structure for database.MongoClient.
@@ -37,7 +37,7 @@ func (_m *MongoClient) Connect(ctx context.Context) error {
 }
 
 // Database mocks a call to Database.
-func (_m *MongoClient) Database(name string, opts ...dbopt.Option) *mongo.Database {
+func (_m *MongoClient) Database(name string, opts ...*options.DatabaseOptions) *mongo.Database {
 	_m.DatabaseCall = database{true, name, opts}
 
 	return nil
@@ -55,5 +55,5 @@ type connect struct {
 type database struct {
 	Called bool
 	Name   string
-	opts   []dbopt.Option
+	opts   []*options.DatabaseOptions
 }

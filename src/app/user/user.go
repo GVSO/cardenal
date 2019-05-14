@@ -41,6 +41,7 @@ var ProcessUserAuth = func(data []byte,
 			"access_token": userMap["token"],
 		},
 	}
+
 	updatedUser, _ := updateUserByLinkedInID(user.LinkedInID, update)
 
 	// If user was not found, creates new user.

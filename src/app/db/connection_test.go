@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mongodb/mongo-go-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gvso/cardenal/src/app/db/mocks"
 	"github.com/gvso/cardenal/src/app/settings"
@@ -82,7 +84,7 @@ func TestGetMongoClient(t *testing.T) {
 	defer func() { newMongoClient = old }()
 
 	// Overwrites newMongoClient function.
-	newMongoClient = func(uri string) (*mongo.Client, error) {
+	newMongoClient = func(...*options.ClientOptions) (*mongo.Client, error) {
 		return &mongo.Client{}, nil
 	}
 
@@ -92,7 +94,7 @@ func TestGetMongoClient(t *testing.T) {
 	assert.Nil(err)
 
 	// Overwrites newMongoClient function.
-	newMongoClient = func(uri string) (*mongo.Client, error) {
+	newMongoClient = func(...*options.ClientOptions) (*mongo.Client, error) {
 		return nil, fmt.Errorf("could not established connection")
 	}
 
